@@ -22,16 +22,26 @@ class FailedToConnect(Exception): pass
 
 
 class RankedRegions:
-    EUWEST = "emea"
+    EU = "emea"
+    NA = "ncsa"
+    ASIA = "apac"
+
 valid_regions = [x.lower() for x in dir(RankedRegions) if "_" not in x]
 
 
 class Platforms:
     UPLAY = "uplay"
-    STEAM = "steam"
+    #STEAM = "steam"
     XBOX = "xbl"
     PLAYSTATION = "psn"
+    #FACEBOOK = "fb"
+
 valid_platforms = [x.lower() for x in dir(Platforms) if "_" not in x]
+PlatformURLNames = {
+    "uplay": "OSBOR_PC_LNCH_A",
+    "psn": "OSBOR_PS4_LNCH_A",
+    "xbl": "OSBOR_XBOXONE_LNCH_A"
+}
 
 
 OperatorIcons = {
@@ -168,7 +178,11 @@ class Auth:
         self.sessionid = ""
         self.key = ""
         self.uncertain_spaceid = ""
-        self.spaceid = "5172a557-50b5-4665-b7db-e3f2e8c5041d"
+        self.spaceids = {
+            "uplay": "5172a557-50b5-4665-b7db-e3f2e8c5041d",
+            "psn": "05bfb3f7-6c21-4c42-be1f-97a33fb5cf66",
+            "xbl": "98a601e5-ca91-4440-b1c5-753f601a2c90"
+        }
         self.profileid = ""
         self.userid = ""
 
@@ -213,6 +227,7 @@ class Auth:
 
     @asyncio.coroutine
     def get_players(self, term, platform):
+        print("looking for platform " + platform)
         if "platform" not in self.cache: self.cache[platform] = {}
 
         if term in self.cache[platform]:
@@ -256,6 +271,14 @@ class Rank:
         "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/season02%20-%20diamond%20charm.e66cad88.png"
     ]
 
+    UNRANKED = 0
+    COPPER = 1
+    BRONZE = 2
+    SILVER = 3
+    GOLD = 4
+    PLATINUM = 5
+    DIAMOND = 6
+
     def __init__(self, data):
         self.max_mmr = data.get("max_mmr")
         self.mmr = data.get("mmr")
@@ -278,6 +301,15 @@ class Rank:
         if self.rank_id <= 16: return self.RANK_CHARMS[3]
         if self.rank_id <= 19: return self.RANK_CHARMS[4]
         return self.RANK_CHARMS[5]
+
+    def get_bracket(self):
+        if self.rank_id == 0: return 0
+        elif self.rank_id <= 4: return 1
+        elif self.rank_id <= 8: return 2
+        elif self.rank_id <= 12: return 3
+        elif self.rank_id <= 15: return 4
+        elif self.rank_id <= 19: return 5
+        else: return 6
 
 
 class Operator:
@@ -343,6 +375,7 @@ class Player:
         self.id = data.get("profileId")
         self.userid = data.get("userId")
         self.platform = data.get("platformType")
+        self.platform_url = PlatformURLNames[self.platform]
         self.id_on_platform = data.get("idOnPlatform")
         self.name = data.get("nameOnPlatform")
 
@@ -360,10 +393,14 @@ class Player:
         self.casual = None
         self.ranked = None
 
+    @property
+    def spaceid(self):
+        return self.auth.spaceids[self.platform]
+
+
     @asyncio.coroutine
     def load_level(self): # 5172a557-50b5-4665-b7db-e3f2e8c5041d
-        resp = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/OSBOR_PC_LNCH_A/r6playerprofile/playerprofile/progressions?profile_ids=%s" % (self.auth.spaceid, self.id))
-        data = yield from resp.json()
+        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/r6playerprofile/playerprofile/progressions?profile_ids=%s" % (self.spaceid, self.platform_url, self.id))
 
         if "player_profiles" in data and len(data["player_profiles"]) > 0:
             self.xp = data["player_profiles"][0].get("xp", 0)
@@ -377,13 +414,14 @@ class Player:
             yield from self.load_level()
 
     @asyncio.coroutine
-    def load_rank(self, region):
-        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/OSBOR_PC_LNCH_A/r6karma/players?board_id=pvp_ranked&profile_ids=%s&region_id=%s&season_id=-1" % (self.auth.spaceid, self.id, region))
+    def load_rank(self, region, season=-1):
+        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/r6karma/players?board_id=pvp_ranked&profile_ids=%s&region_id=%s&season_id=%s" % (self.spaceid, self.platform_url, self.id, region, season))
 
         if "players" in data and self.id in data["players"]:
             self.ranks[region] = Rank(data["players"][self.id])
             return self.ranks[region]
         else:
+            print(data)
             raise InvalidRequest
 
     @asyncio.coroutine
@@ -398,7 +436,7 @@ class Player:
     def load_operator(self, operator):
         operator_key = "operatorpvp_" + operator.lower() + "_" + OperatorStatistics[operator.upper()]
 
-        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/OSBOR_PC_LNCH_A/playerstats2/statistics?populations=%s&statistics=operatorpvp_kills,operatorpvp_death,operatorpvp_roundwon,operatorpvp_roundlost,%s" % (self.auth.spaceid, self.id, operator_key))
+        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=operatorpvp_kills,operatorpvp_death,operatorpvp_roundwon,operatorpvp_roundlost,%s" % (self.spaceid, self.platform_url, self.id, operator_key))
 
         if not "results" in data or not self.id in data["results"]:
             print(data)
@@ -431,7 +469,7 @@ class Player:
 
     @asyncio.coroutine
     def load_weapons(self):
-        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/OSBOR_PC_LNCH_A/playerstats2/statistics?populations=%s&statistics=weapontypepvp_kills,weapontypepvp_headshot,weapontypepvp_bulletfired,weapontypepvp_bullethit" % (self.auth.spaceid, self.id))
+        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=weapontypepvp_kills,weapontypepvp_headshot,weapontypepvp_bulletfired,weapontypepvp_bullethit" % (self.spaceid, self.platform_url, self.id))
 
         if not "results" in data or not self.id in data["results"]:
             print(data)
@@ -463,7 +501,7 @@ class Player:
 
     @asyncio.coroutine
     def load_gamemodes(self):
-        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/OSBOR_PC_LNCH_A/playerstats2/statistics?populations=%s&statistics=secureareapvp_matchwon,secureareapvp_matchlost,secureareapvp_matchplayed,secureareapvp_bestscore,rescuehostagepvp_matchwon,rescuehostagepvp_matchlost,rescuehostagepvp_matchplayed,rescuehostagepvp_bestscore,plantbombpvp_matchwon,plantbombpvp_matchlost,plantbombpvp_matchplayed,plantbombpvp_bestscore" % (self.auth.spaceid, self.id))
+        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=secureareapvp_matchwon,secureareapvp_matchlost,secureareapvp_matchplayed,secureareapvp_bestscore,rescuehostagepvp_matchwon,rescuehostagepvp_matchlost,rescuehostagepvp_matchplayed,rescuehostagepvp_bestscore,plantbombpvp_matchwon,plantbombpvp_matchlost,plantbombpvp_matchplayed,plantbombpvp_bestscore" % (self.spaceid, self.platform_url, self.id))
 
         if not "results" in data or not self.id in data["results"]:
             print(data)
@@ -491,7 +529,7 @@ class Player:
 
     @asyncio.coroutine
     def load_general(self):
-        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/OSBOR_PC_LNCH_A/playerstats2/statistics?populations=%s&statistics=generalpvp_timeplayed,generalpvp_matchplayed,generalpvp_matchwon,generalpvp_matchlost,generalpvp_kills,generalpvp_death,generalpvp_bullethit,generalpvp_bulletfired,generalpvp_killassists,generalpvp_revive,generalpvp_headshot,generalpvp_penetrationkills,generalpvp_meleekills" % (self.auth.spaceid, self.id))
+        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=generalpvp_timeplayed,generalpvp_matchplayed,generalpvp_matchwon,generalpvp_matchlost,generalpvp_kills,generalpvp_death,generalpvp_bullethit,generalpvp_bulletfired,generalpvp_killassists,generalpvp_revive,generalpvp_headshot,generalpvp_penetrationkills,generalpvp_meleekills" % (self.spaceid, self.platform_url, self.id))
 
         if not "results" in data or not self.id in data["results"]:
             print(data)
@@ -521,7 +559,7 @@ class Player:
 
     @asyncio.coroutine
     def load_queues(self):
-        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/OSBOR_PC_LNCH_A/playerstats2/statistics?populations=%s&statistics=casualpvp_matchwon,casualpvp_matchlost,casualpvp_timeplayed,casualpvp_matchplayed,casualpvp_kills,casualpvp_death,rankedpvp_matchwon,rankedpvp_matchlost,rankedpvp_timeplayed,rankedpvp_matchplayed,rankedpvp_kills,rankedpvp_death" % (self.auth.spaceid, self.id))
+        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=casualpvp_matchwon,casualpvp_matchlost,casualpvp_timeplayed,casualpvp_matchplayed,casualpvp_kills,casualpvp_death,rankedpvp_matchwon,rankedpvp_matchlost,rankedpvp_timeplayed,rankedpvp_matchplayed,rankedpvp_kills,rankedpvp_death" % (self.spaceid, self.platform_url, self.id))
 
         if not "results" in data or not self.id in data["results"]:
             print(data)
