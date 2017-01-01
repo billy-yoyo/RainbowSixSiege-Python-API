@@ -39,6 +39,7 @@ $RECYCLE.BIN/
 .Trashes
 .VolumeIcon.icns
 .gitattributes
+.pypirc
 
 # Directories potentially created on remote AFP share
 .AppleDB
@@ -47,3 +48,5 @@ Network Trash Folder
 Temporary Items
 .apdisk
 __pycache__
+r6sapi.egg-info
+dist

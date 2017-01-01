@@ -23,7 +23,7 @@ setup(name='r6sapi',
       long_description=readme,
       include_package_data=True,
       install_requires=requirements,
-      extras_require=extras_require,
+      extras_require={},
       classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
