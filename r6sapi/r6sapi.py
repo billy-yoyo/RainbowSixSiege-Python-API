@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Copyright (c) 2016-2017 billyoyo
 
@@ -326,6 +328,9 @@ class Auth:
     def get_players(self, term, platform):
         """|coro|
 
+        get a list of players matching the term on that platform,
+        this list almost always has only 1 element, so it's easier to use get_player
+
         Parameters
         ----------
         term : str
@@ -333,8 +338,10 @@ class Auth:
         platform : str
             the name of the platform you're searching on (See :class:`Platforms`)
 
-        get a list of players matching the term on that platform,
-        this list almost always has only 1 element, so it's easier to use get_player"""
+        Returns
+        -------
+        list[:class:`Player`]
+            list of found players"""
         if "platform" not in self.cache: self.cache[platform] = {}
 
         if term in self.cache[platform]:
@@ -358,7 +365,19 @@ class Auth:
     def get_player(self, term, platform):
         """|coro|
 
-        Calls get_players and returns the first element"""
+        Calls get_players and returns the first element
+
+        Parameters
+        ----------
+        term : str
+            the name of the player you're searching for
+        platform : str
+            the name of the platform you're searching on (See :class:`Platforms`)
+
+        Returns
+        -------
+        :class:`Player`
+            player found"""
         results = yield from self.get_players(term, platform)
         return results[0]
 
@@ -970,7 +989,7 @@ class Player:
         data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=casualpvp_matchwon,casualpvp_matchlost,casualpvp_timeplayed,casualpvp_matchplayed,casualpvp_kills,casualpvp_death,rankedpvp_matchwon,rankedpvp_matchlost,rankedpvp_timeplayed,rankedpvp_matchplayed,rankedpvp_kills,rankedpvp_death" % (self.spaceid, self.platform_url, self.id))
 
         if not "results" in data or not self.id in data["results"]:
-            raise InvalidRequest("Missing key results in returned JSON object %s" % data)
+            raise InvalidRequest("Missing key results in returned JSON object %s" % str(data))
 
         data = data["results"][self.id]
         self.ranked = GameQueue("ranked")
