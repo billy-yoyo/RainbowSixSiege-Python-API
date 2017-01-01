@@ -6,15 +6,18 @@
 Welcome to r6sapi.py's documentation!
 =====================================
 
+Contents
+--------
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
-
+   
+   gettingstarted
+   api
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`

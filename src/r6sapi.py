@@ -12,6 +12,7 @@ import aiohttp
 import asyncio
 import time
 import json
+import base64
 from urllib import parse
 
 
@@ -22,6 +23,16 @@ class FailedToConnect(Exception): pass
 
 
 class RankedRegions:
+    """Ranked regions supported
+
+    Attributes
+    ----------
+    EU : str
+        name of the european data centre
+    NA : str
+        name of the north american data centre
+    ASIA : str
+        name of the asian data centre"""
     EU = "emea"
     NA = "ncsa"
     ASIA = "apac"
@@ -30,11 +41,20 @@ valid_regions = [x.lower() for x in dir(RankedRegions) if "_" not in x]
 
 
 class Platforms:
+    """Platforms supported
+
+    Attributes
+    ----------
+    UPLAY : str
+        name of the uplay platform
+    XBOX : str
+        name of the xbox platform
+    PLAYSTATION : str
+        name of the playstation platform"""
+
     UPLAY = "uplay"
-    #STEAM = "steam"
     XBOX = "xbl"
     PLAYSTATION = "psn"
-    #FACEBOOK = "fb"
 
 valid_platforms = [x.lower() for x in dir(Platforms) if "_" not in x]
 PlatformURLNames = {
@@ -142,6 +162,24 @@ OperatorStatisticNames = {
 
 
 class WeaponTypes:
+    """Weapon Types
+
+    Attributes
+    ----------
+    ASSAULT_RIFLE : int
+        the assault rifle weapon id
+    SUBMACHINE_GUN : int
+        the submachine gun weapon id
+    MARKSMAN_RIFLE : int
+        the marksman rifle weapon id
+    SHOTGUN : int
+        the shotgun weapon id
+    HANDGUN : int
+        the handgun weapon id
+    LIGHT_MACHINE_GUN : int
+        the light machine gun weapon id
+    MACHINE_PISTOL : int
+        the machine pistol weapon id"""
     ASSAULT_RIFLE = 0
     SUBMACHINE_GUN = 1
     MARKSMAN_RIFLE = 2
@@ -169,11 +207,65 @@ GamemodeNames = {
 
 
 class Auth:
+    """Holds your authentication information. Used to retrieve Player objects
 
-    def __init__(self, token, appid, cachetime=120):
+    Parameters
+    ----------
+    email : Optional[str]
+        Your Ubisoft email
+    password : Optional[str]
+        Your Ubisoft password
+    token : Optional[str]
+        Your Ubisoft auth token, either supply this OR email/password
+    appid : Optional[str]
+        Your Ubisoft appid, not required
+    cachetime : Optional[float]
+        How long players are cached for (in seconds)
+
+    Attributes
+    ----------
+    session
+        aiohttp client session
+    token : str
+        your token
+    appid : str
+        your appid
+    sessionid : str
+        the current connections session id (will change upon attaining new key)
+    key : str
+        your current auth key (will change every time you connect)
+    spaceids : dict
+        contains the spaceid for each platform
+    profileid : str
+        your profileid (corresponds to your appid)
+    userid : str
+        your userid (corresponds to your appid)
+    cachetime : float
+        the time players are cached for
+    cache : dict
+        the current player cache
+
+    """
+
+    @staticmethod
+    def get_basic_token(email, password):
+        return base64.b64encode((email + ":" + password).encode("utf-8")).decode("utf-8")
+
+
+    def __init__(self, email=None, password=None, token=None, appid=None, cachetime=120):
         self.session = aiohttp.ClientSession()
-        self.token = token
-        self.appid = appid
+
+        if email is not None and password is not None:
+            self.token = Auth.get_basic_token(email, password)
+        elif token is not None:
+            self.token = token
+        else:
+            raise TypeError("Argument error, requires either email/password or token to be set, neither given")
+
+        if appid is not None:
+            self.appid = appid
+        else:
+            self.appid = "412802ed-8163-4642-a931-8299f209fecb"
 
         self.sessionid = ""
         self.key = ""
@@ -191,20 +283,21 @@ class Auth:
 
     @asyncio.coroutine
     def connect(self):
+        """|coro|
+
+        Connect to ubisoft, automatically called when needed"""
         resp = yield from self.session.post("https://connect.ubi.com/ubiservices/v2/profiles/sessions", headers = {
             "Content-Type": "application/json",
             "Ubi-AppId": self.appid,
             "Authorization": "Basic " + self.token
         }, data=json.dumps({"rememberMe": True}))
         data = yield from resp.json()
-        #print(json.dumps(data, indent=4))
 
         if "ticket" in data:
             self.key = data.get("ticket")
             self.sessionid = data.get("sessionId")
             self.uncertain_spaceid = data.get("spaceId")
         else:
-            print(data)
             raise FailedToConnect
 
 
@@ -222,12 +315,26 @@ class Auth:
                 yield from self.connect()
                 result = yield from self.get(*args, retries=retries+1, **kwargs)
                 return result
+            else:
+                msg = data.get("message", "")
+                if data["httpCode"] == 404: msg = "missing resource %s" % data["resource"]
+                raise InvalidRequest("HTTP Code: %s, Message: %s" % (data["httpCode"], msg))
 
         return data
 
     @asyncio.coroutine
     def get_players(self, term, platform):
-        print("looking for platform " + platform)
+        """|coro|
+
+        Parameters
+        ----------
+        term : str
+            the name of the player you're searching for
+        platform : str
+            the name of the platform you're searching on (See :class:`Platforms`)
+
+        get a list of players matching the term on that platform,
+        this list almost always has only 1 element, so it's easier to use get_player"""
         if "platform" not in self.cache: self.cache[platform] = {}
 
         if term in self.cache[platform]:
@@ -245,16 +352,68 @@ class Auth:
                 self.cache[platform][term] = [time.time() + self.cachetime, results]
             return results
         else:
-            print(data)
-            raise InvalidRequest
+            raise InvalidRequest("Missing key profiles in returned JSON object %s" % str(data))
 
     @asyncio.coroutine
     def get_player(self, term, platform):
+        """|coro|
+
+        Calls get_players and returns the first element"""
         results = yield from self.get_players(term, platform)
         return results[0]
 
 
 class Rank:
+    """Contains information about your rank
+
+    Attributes
+    ----------
+    RANKS : list[str]
+        Names of the ranks
+    RANK_CHARMS : list[str]
+        URLs for the rank charms
+    UNRANKED : int
+        the unranked bracket id
+    COPPER : int
+        the copper bracket id
+    BRONZE : int
+        the bronze bracket id
+    SILVER : int
+        the silver bracket id
+    GOLD : int
+        the gold bracket id
+    PLATINUM : int
+        the platinum bracket id
+    DIAMOND : int
+        the diamond bracket id
+    max_mmr : int
+        the maximum MMR the player has achieved
+    mmr : int
+        the MMR the player currently has
+    wins : int
+        the number of wins this player has this season
+    losses : int
+        the number of losses this player has this season
+    abandons : int
+        the number of abandons this player has this season
+
+    rank_id : int
+        the id of the players current rank
+    rank : str
+        the name of the players current rank
+    max_rank : int
+        the id of the players max rank
+    next_rank_mmr : int
+        the mmr required for the player to achieve their next rank
+    season : int
+        the season this rank is for
+    region : str
+        the region this rank is for
+    skill_mean : float
+        the mean for this persons skill
+    skill_stdev : float
+        the standard deviation for this persons skill
+    """
     RANKS = ["Unranked",
              "Copper 1",   "Copper 2",   "Copper 3",   "Copper 4",
              "Bronze 1",   "Bronze 2",   "Bronze 3",   "Bronze 4",
@@ -295,6 +454,14 @@ class Rank:
         self.skill_stdev = data.get("skill_stdev")
 
     def get_charm_url(self):
+        """Get charm URL for the bracket this rank is in
+
+        Returns
+        -------
+        :class:`str`
+            the URL for the charm
+
+        """
         if self.rank_id <= 4: return self.RANK_CHARMS[0]
         if self.rank_id <= 8: return self.RANK_CHARMS[1]
         if self.rank_id <= 12: return self.RANK_CHARMS[2]
@@ -303,6 +470,14 @@ class Rank:
         return self.RANK_CHARMS[5]
 
     def get_bracket(self):
+        """Get rank bracket
+
+        Returns
+        -------
+        :class:`int`
+            the id for the rank bracket this rank is in
+
+        """
         if self.rank_id == 0: return 0
         elif self.rank_id <= 4: return 1
         elif self.rank_id <= 8: return 2
@@ -313,6 +488,24 @@ class Rank:
 
 
 class Operator:
+    """Contains information about an operator
+
+    Attributes
+    ----------
+    name : str
+        the name of the operator
+    wins : int
+        the number of wins the player has on this operator
+    losses : int
+        the number of losses the player has on this operator
+    kills : int
+        the number of kills the player has on this operator
+    deaths : int
+        the number of deaths the player has on this operator
+    statistic : int
+        the value for this operators unique statistic
+    statistic_name : str
+        the human-friendly name for this operators statistic"""
     def __init__(self, name, data):
         self.name = name.lower()
 
@@ -326,6 +519,24 @@ class Operator:
 
 
 class Weapon:
+    """Contains information about a weapon
+
+    Attributes
+    ----------
+    type : int
+        the weapon type
+    name : str
+        the human-friendly name for this weapon type
+    kills : int
+        the number of kills the player has for this weapon
+    headshots : int
+        the number of headshots the player has for this weapon
+    hits : int
+        the number of bullet this player has hit with this weapon
+    shots : int
+        the number of bullets this player has shot with this weapon
+
+    """
     def __init__(self, type):
         self.type = type
         self.name = WeaponNames[self.type]
@@ -337,6 +548,22 @@ class Weapon:
 
 
 class Gamemode:
+    """Contains information about a gamemode
+
+    Attributes
+    ----------
+    type : str
+        the gamemode id
+    name : str
+        the human-readable name for this gamemode
+    won : int
+        the number of wins the player has on this gamemode
+    lost : int
+        the number of losses the player has on this gamemode
+    played : int
+        the number of games this player has played on this gamemode
+    best_score : int
+        the best score this player has achieved on this gamemode"""
     def __init__(self, type):
         self.type = type
         self.name = GamemodeNames[self.type]
@@ -348,6 +575,24 @@ class Gamemode:
 
 
 class GameQueue:
+    """Contains information about a specific game queue
+
+    Attributes
+    ----------
+    name : str
+        the name for this gamemode (always either "ranked" or "casual"
+    won : int
+        the number of wins the player has on this gamemode
+    lost : int
+        the number of losses the player has on this gamemode
+    time_played : int
+        the amount of time in seconds the player has spent playing on this gamemode
+    played : int
+        the number of games the player has played on this gamemode
+    kills : int
+        the number of kills the player has on this gamemode
+    deaths : int
+        the number of deaths the player has on this gamemode"""
     def __init__(self, name):
         self.name = name
 
@@ -368,6 +613,72 @@ def format_time(time_played, format):
 
 
 class Player:
+    """Contains information about a specific player
+
+    Attributes
+    ----------
+    auth : :class:`Auth`
+        the auth object used to find this player
+    id : str
+        the players profile id
+    userid : str
+        the players user id
+    platform : str
+        the platform this player is on
+    platform_url : str
+        the URL name for this platform (used internally)
+    id_on_platform : str
+        the players ID on the platform
+    name : str
+        the players name on the platform
+    url : str
+        a link to the players profile
+    icon_url : str
+        a link to the players avatar
+    xp : int
+        the amount of xp the player has, must call check_level or load_level first
+    level : int
+        the level of the player, must call check_level or load_level first
+    ranks : dict
+        dict containing already found ranks ("region_name:season": :class:`Rank`)
+    operators : dict
+        dict containing already found operators (operator_name: :class:`Operator`)
+    gamemodes : dict
+        dict containing already found gamemodes (gamemode_id: :class:`Gamemode`)
+    weapons : dict
+        dict containing already found weapons (weapon_id: :class:`Weapon`)
+    casual : :class:`GameQueue`
+        stats for the casual queue, must call load_queues or check_queues first
+    ranked : :class:`GameQueue`
+        stats for the ranked queue, must call load_queues or check_queues first
+    deaths : int
+        the number of deaths the player has (must call load_general or check_general first)
+    kills : int
+        the number of kills the player has (must call load_general or check_general first)
+    kill_assists : int
+        the number of kill assists the player has (must call load_general or check_general first)
+    penetration_kills : int
+        the number of penetration kills the player has (must call load_general or check_general first)
+    melee_kills : int
+        the number of melee kills the player has (must call load_general or check_general first)
+    revives : int
+        the number of revives the player has (must call load_general or check_general first)
+    matches_won : int
+        the number of matches the player has won (must call load_general or check_general first)
+    matches_lost : int
+        the number of matches the player has lost (must call load_general or check_general first)
+    matches_played : int
+        the number of matches the player has played (must call load_general or check_general first)
+    time_played : int
+        the amount of time in seconds the player has played for (must call load_general or check_general first)
+    bullets_fired : int
+        the amount of bullets the player has fired (must call load_general or check_general first)
+    bullets_hit : int
+        the amount of bullets the player has hit (must call load_general or check_general first)
+    headshots : int
+        the amount of headshots the player has hit (must call load_general or check_general first)
+
+    """
 
     def __init__(self, auth, data):
         self.auth = auth
@@ -399,48 +710,95 @@ class Player:
 
 
     @asyncio.coroutine
-    def load_level(self): # 5172a557-50b5-4665-b7db-e3f2e8c5041d
+    def load_level(self):
+        """|coro|
+
+        Load the players XP and level"""
         data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/r6playerprofile/playerprofile/progressions?profile_ids=%s" % (self.spaceid, self.platform_url, self.id))
 
         if "player_profiles" in data and len(data["player_profiles"]) > 0:
             self.xp = data["player_profiles"][0].get("xp", 0)
             self.level = data["player_profiles"][0].get("level", 0)
         else:
-            print(data)
+            raise InvalidRequest("Missing key player_profiles in returned JSON object %s" % str(data))
 
     @asyncio.coroutine
     def check_level(self):
+        """|coro|
+
+        Check the players XP and level, only loading it if it hasn't been loaded yet"""
         if self.xp is None:
             yield from self.load_level()
 
     @asyncio.coroutine
     def load_rank(self, region, season=-1):
+        """|coro|
+        Loads the players rank for this region and season
+
+        Parameters
+        ----------
+        region : str
+            the name of the region you want to get the rank for
+        season : Optional[int]
+            the season you want to get the rank for (defaults to -1, latest season)
+
+        Returns
+        -------
+        :class:`Rank`
+            the players rank for this region and season"""
         data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/r6karma/players?board_id=pvp_ranked&profile_ids=%s&region_id=%s&season_id=%s" % (self.spaceid, self.platform_url, self.id, region, season))
 
         if "players" in data and self.id in data["players"]:
             self.ranks[region] = Rank(data["players"][self.id])
-            return self.ranks[region]
+            return self.ranks["%s:%s" % (region, season)]
         else:
-            print(data)
-            raise InvalidRequest
+            raise InvalidRequest("Missing players key in returned JSON object %s" % str(data))
 
     @asyncio.coroutine
-    def get_rank(self, region):
-        if region in self.ranks:
-            return self.ranks[region]
+    def get_rank(self, region, season=-1):
+        """|coro|
 
-        result = yield from self.load_rank(region)
+        Checks the players rank for this region, only loading it if it hasn't already been found
+
+        Parameters
+        ----------
+        region : str
+            the name of the region you want to get the rank for
+        season : Optional[int]
+            the season you want to get the rank for (defaults to -1, latest season)
+
+        Returns
+        -------
+        :class:`Rank`
+            the players rank for this region and season"""
+        cache_key = "%s:%s" % (region, season)
+        if cache_key in self.ranks:
+            return self.ranks[cache_key]
+
+        result = yield from self.load_rank(region, season)
         return result
 
     @asyncio.coroutine
     def load_operator(self, operator):
+        """|coro|
+
+        Loads the players stats for the operator
+
+        Parameters
+        ----------
+        operator : str
+            the name of the operator
+
+        Returns
+        -------
+        :class:`Operator`
+            the operator object found"""
         operator_key = "operatorpvp_" + operator.lower() + "_" + OperatorStatistics[operator.upper()]
 
         data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=operatorpvp_kills,operatorpvp_death,operatorpvp_roundwon,operatorpvp_roundlost,%s" % (self.spaceid, self.platform_url, self.id, operator_key))
 
         if not "results" in data or not self.id in data["results"]:
-            print(data)
-            raise InvalidRequest
+            raise InvalidRequest("Missing results key in returned JSON object %s" % str(data))
 
         data = data["results"][self.id]
 
@@ -452,8 +810,7 @@ class Player:
 
         data = {x.split(":")[0].split("_")[1]: data[x] for x in data if location in x}
         if len(data) != 5:
-            print(data)
-            raise InvalidRequest
+            raise InvalidRequest("invalid number of results for operator in JSON object %s" % data)
 
         oper = Operator(operator, data)
         self.operators[operator] = oper
@@ -461,6 +818,19 @@ class Player:
 
     @asyncio.coroutine
     def get_operator(self, operator):
+        """|coro|
+
+        Checks the players stats for this operator, only loading them if they haven't already been found
+
+        Parameters
+        ----------
+        operator : str
+            the name of the operator
+
+        Returns
+        -------
+        :class:`Operator`
+            the operator object found"""
         if operator in self.operators:
             return self.operators[operator]
 
@@ -469,11 +839,18 @@ class Player:
 
     @asyncio.coroutine
     def load_weapons(self):
+        """|coro|
+
+        Load the players weapon stats
+
+        Returns
+        -------
+        list[:class:`Weapon`]
+            list of all the weapon objects found"""
         data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=weapontypepvp_kills,weapontypepvp_headshot,weapontypepvp_bulletfired,weapontypepvp_bullethit" % (self.spaceid, self.platform_url, self.id))
 
         if not "results" in data or not self.id in data["results"]:
-            print(data)
-            raise InvalidRequest
+            raise InvalidRequest("Missing key results in returned JSON object %s" % str(data))
 
         data = data["results"][self.id]
         self.weapons = [Weapon(i) for i in range(7)]
@@ -495,17 +872,32 @@ class Player:
 
     @asyncio.coroutine
     def check_weapons(self):
+        """|coro|
+
+        Check the players weapon stats, only loading them if they haven't already been found
+
+        Returns
+        -------
+        list[:class:`Weapon`]
+            list of all the weapon objects found"""
         if len(self.weapons) == 0:
             yield from self.load_weapons()
         return self.weapons
 
     @asyncio.coroutine
     def load_gamemodes(self):
+        """|coro|
+
+        Loads the players gamemode stats
+
+        Returns
+        -------
+        dict
+            dict of all the gamemodes found (gamemode_name: :class:`Gamemode`)"""
         data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=secureareapvp_matchwon,secureareapvp_matchlost,secureareapvp_matchplayed,secureareapvp_bestscore,rescuehostagepvp_matchwon,rescuehostagepvp_matchlost,rescuehostagepvp_matchplayed,rescuehostagepvp_bestscore,plantbombpvp_matchwon,plantbombpvp_matchlost,plantbombpvp_matchplayed,plantbombpvp_bestscore" % (self.spaceid, self.platform_url, self.id))
 
         if not "results" in data or not self.id in data["results"]:
-            print(data)
-            raise InvalidRequest
+            raise InvalidRequest("Missing key results in returned JSON object %s" % str(data))
 
         data = data["results"][self.id]
         self.gamemodes = {x: Gamemode(x) for x in GamemodeNames}
@@ -523,17 +915,27 @@ class Player:
 
     @asyncio.coroutine
     def check_gamemodes(self):
+        """|coro|
+
+        Checks the players gamemode stats, only loading them if they haven't already been found
+
+        Returns
+        -------
+        dict
+            dict of all the gamemodes found (gamemode_name: :class:`Gamemode`)"""
         if len(self.gamemodes) == 0:
             yield from self.load_gamemodes()
         return self.gamemodes
 
     @asyncio.coroutine
     def load_general(self):
+        """|coro|
+
+        Loads the players general stats"""
         data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=generalpvp_timeplayed,generalpvp_matchplayed,generalpvp_matchwon,generalpvp_matchlost,generalpvp_kills,generalpvp_death,generalpvp_bullethit,generalpvp_bulletfired,generalpvp_killassists,generalpvp_revive,generalpvp_headshot,generalpvp_penetrationkills,generalpvp_meleekills" % (self.spaceid, self.platform_url, self.id))
 
         if not "results" in data or not self.id in data["results"]:
-            print(data)
-            raise InvalidRequest
+            raise InvalidRequest("Missing key results in returned JSON object %s" % str(data))
 
         data = data["results"][self.id]
         for x in data:
@@ -554,16 +956,21 @@ class Player:
 
     @asyncio.coroutine
     def check_general(self):
+        """|coro|
+
+        Checks the players general stats, only loading them if they haven't already been found"""
         if not hasattr(self, "kills"):
             yield from self.load_general()
 
     @asyncio.coroutine
     def load_queues(self):
+        """|coro|
+
+        Loads the players game queues"""
         data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=casualpvp_matchwon,casualpvp_matchlost,casualpvp_timeplayed,casualpvp_matchplayed,casualpvp_kills,casualpvp_death,rankedpvp_matchwon,rankedpvp_matchlost,rankedpvp_timeplayed,rankedpvp_matchplayed,rankedpvp_kills,rankedpvp_death" % (self.spaceid, self.platform_url, self.id))
 
         if not "results" in data or not self.id in data["results"]:
-            print(data)
-            raise InvalidRequest
+            raise InvalidRequest("Missing key results in returned JSON object %s" % data)
 
         data = data["results"][self.id]
         self.ranked = GameQueue("ranked")
@@ -584,5 +991,8 @@ class Player:
 
     @asyncio.coroutine
     def check_queues(self):
+        """|coro|
+
+        Checks the players game queues, only loading them if they haven't already been found"""
         if self.casual is None:
             yield from self.load_queues()
