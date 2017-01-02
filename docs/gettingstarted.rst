@@ -1,4 +1,4 @@
-Getting Starting
+Getting Started
 ================
 
 Introduction
