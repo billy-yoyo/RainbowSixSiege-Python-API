@@ -628,15 +628,15 @@ class Operator:
     def __init__(self, name, data):
         self.name = name.lower()
 
-        self.wins = data["roundwon"]
-        self.losses = data["roundlost"]
-        self.kills = data["kills"]
-        self.deaths = data["death"]
-        self.headshots = data["headshot"]
-        self.melees = data["meleekills"]
-        self.dbnos = data["dbno"]
-        self.xp = data["totalxp"]
-        self.time_played = data["timeplayed"]
+        self.wins = data.get("roundwon", 0)
+        self.losses = data.get("roundlost", 0)
+        self.kills = data.get("kills", 0)
+        self.deaths = data.get("death", 0)
+        self.headshots = data.get("headshot", 0)
+        self.melees = data.get("meleekills", 0)
+        self.dbnos = data.get("dbno", 0)
+        self.xp = data.get("totalxp", 0)
+        self.time_played = data.get("timeplayed", 0)
 
         statistic_name = self.name
         if self.name == "jackal": statistic_name = "cazador"
