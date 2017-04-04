@@ -982,11 +982,7 @@ class Player:
 
         data = data["results"][self.id]
 
-        location = None
-        for x in data:
-            if x.startswith(operator_key) and data[x] != 0:
-                location = ":".join(x.split(":")[1:3])
-                break
+        location = OperatorIndexLocations[operator.upper()]
 
         data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None and location in x}
         if len(data) < 5:
