@@ -676,7 +676,7 @@ class Operator:
         statistic_name = self.name
         if self.name == "jackal": statistic_name = "cazador"
         if self.name == "mira": statistic_name = "black"
-        self.statistic = data[statistic_name]
+        self.statistic = data.get(statistic_name, 0)
         self.statistic_name = OperatorStatisticNames[self.name.upper()]
 
 
