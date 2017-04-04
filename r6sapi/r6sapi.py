@@ -205,6 +205,39 @@ OperatorStatisticNames = {
     "MIRA": "Black Mirrors Deployed"
 }
 
+OperatorIndexLocations = {
+    "ASH": "3:2",
+    "BANDIT": "5:5",
+    "MIRA": "3:A",
+    "BLACKBEARD": "2:7",
+    "BLITZ": "2:5",
+    "BUCK": "2:6",
+    "CAPITAO": "2:8",
+    "CASTLE": "2:2",
+    "CAVEIRA": "3:8",
+    "JACKAL": "2:A",
+    "DOC": "2:3",
+    "ECHO": "3:9",
+    "FROST": "3:6",
+    "FUZE:": "3:4",
+    "GLAZ": "2:4",
+    "HIBANA": "2:9",
+    "IQ": "3:5",
+    "JAGER": "4:5",
+    "KAPKAN": "4:4",
+    "MONTAGNE": "5:3",
+    "MUTE": "3:1",
+    "PULSE": "4:2",
+    "ROOK": "3:3",
+    "SLEDGE": "4:1",
+    "SMOKE": "2:1",
+    "TACHANKA": "5:4",
+    "THATCHER": "5:1",
+    "THERMITE": "5:2",
+    "TWITCH": "4:3",
+    "VALKYRIE": "3:7"
+}
+
 
 class WeaponTypes:
     """Weapon Types
