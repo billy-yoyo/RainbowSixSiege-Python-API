@@ -97,6 +97,8 @@ OperatorProfiles = {
     "BLACKBEARD": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/large-blackbeard.2292a791.png",
     "JAGER": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/large-jaeger.d8a6c470.png",
     "CAVEIRA": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/large-caveira.e4d82365.png",
+    "JACKAL": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/large-jackal.e7ec96e6.png",
+    "MIRA": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/large-mira.0c9e3bd8.png",
     "DEFAULT": "https://ubistatic-a.akamaihd.net/0058/prod/assets/styles/images/mask-large-bandit.fc038cf1.png"
 }
 
