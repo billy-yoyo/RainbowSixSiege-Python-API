@@ -97,6 +97,8 @@ OperatorProfiles = {
     "BLACKBEARD": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/large-blackbeard.2292a791.png",
     "JAGER": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/large-jaeger.d8a6c470.png",
     "CAVEIRA": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/large-caveira.e4d82365.png",
+    "JACKAL": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/large-jackal.e7ec96e6.png",
+    "MIRA": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/large-mira.0c9e3bd8.png",
     "DEFAULT": "https://ubistatic-a.akamaihd.net/0058/prod/assets/styles/images/mask-large-bandit.fc038cf1.png"
 }
 
@@ -201,6 +203,39 @@ OperatorStatisticNames = {
     "CAVEIRA": "Interrogations",
     "JACKAL": "Footprint Scan Assists",
     "MIRA": "Black Mirrors Deployed"
+}
+
+OperatorIndexLocations = {
+    "ASH": "3:2",
+    "BANDIT": "5:5",
+    "MIRA": "3:A",
+    "BLACKBEARD": "2:7",
+    "BLITZ": "2:5",
+    "BUCK": "2:6",
+    "CAPITAO": "2:8",
+    "CASTLE": "2:2",
+    "CAVEIRA": "3:8",
+    "JACKAL": "2:A",
+    "DOC": "2:3",
+    "ECHO": "3:9",
+    "FROST": "3:6",
+    "FUZE:": "3:4",
+    "GLAZ": "2:4",
+    "HIBANA": "2:9",
+    "IQ": "3:5",
+    "JAGER": "4:5",
+    "KAPKAN": "4:4",
+    "MONTAGNE": "5:3",
+    "MUTE": "3:1",
+    "PULSE": "4:2",
+    "ROOK": "3:3",
+    "SLEDGE": "4:1",
+    "SMOKE": "2:1",
+    "TACHANKA": "5:4",
+    "THATCHER": "5:1",
+    "THERMITE": "5:2",
+    "TWITCH": "4:3",
+    "VALKYRIE": "3:7"
 }
 
 
@@ -628,20 +663,20 @@ class Operator:
     def __init__(self, name, data):
         self.name = name.lower()
 
-        self.wins = data["roundwon"]
-        self.losses = data["roundlost"]
-        self.kills = data["kills"]
-        self.deaths = data["death"]
-        self.headshots = data["headshot"]
-        self.melees = data["meleekills"]
-        self.dbnos = data["dbno"]
-        self.xp = data["totalxp"]
-        self.time_played = data["timeplayed"]
+        self.wins = data.get("roundwon", 0)
+        self.losses = data.get("roundlost", 0)
+        self.kills = data.get("kills", 0)
+        self.deaths = data.get("death", 0)
+        self.headshots = data.get("headshot", 0)
+        self.melees = data.get("meleekills", 0)
+        self.dbnos = data.get("dbno", 0)
+        self.xp = data.get("totalxp", 0)
+        self.time_played = data.get("timeplayed", 0)
 
         statistic_name = self.name
         if self.name == "jackal": statistic_name = "cazador"
         if self.name == "mira": statistic_name = "black"
-        self.statistic = data[statistic_name]
+        self.statistic = data.get(statistic_name, 0)
         self.statistic_name = OperatorStatisticNames[self.name.upper()]
 
 
@@ -947,11 +982,7 @@ class Player:
 
         data = data["results"][self.id]
 
-        location = None
-        for x in data:
-            if x.startswith(operator_key) and data[x] != 0:
-                location = ":".join(x.split(":")[1:3])
-                break
+        location = OperatorIndexLocations[operator.upper()]
 
         data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None and location in x}
         if len(data) < 5:
