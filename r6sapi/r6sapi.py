@@ -323,9 +323,12 @@ class Auth:
         }
         self.profileid = ""
         self.userid = ""
+        self.genome = ""
 
         self.cachetime = cachetime
         self.cache={}
+
+        self._definitions = None
 
     @asyncio.coroutine
     def connect(self):
@@ -373,7 +376,7 @@ class Auth:
                     return result
                 else:
                     msg = data.get("message", "")
-                    if data["httpCode"] == 404: msg = "missing resource %s" % data["resource"]
+                    if data["httpCode"] == 404: msg = "missing resource %s" % data.get("resource", args[0])
                     raise InvalidRequest("HTTP Code: %s, Message: %s" % (data["httpCode"], msg))
 
             return data
@@ -437,6 +440,45 @@ class Auth:
             player found"""
         results = yield from self.get_players(term, platform)
         return results[0]
+
+    @asyncio.coroutine
+    def get_definitions(self):
+        """|coro|
+
+        Retrieves the list of api definitions, downloading it from Ubisoft if it hasn't been fetched all ready
+        Primarily for internal use, but could contain useful information.
+
+        Returns
+        -------
+        dict
+            definitions"""
+        if self._definitions is not None:
+            return self._definitions
+
+        resp = yield from self.session.get("https://ubistatic-a.akamaihd.net/0058/prod/assets/data/statistics.definitions.eb165e13.json")
+
+        data = yield from resp.json()
+        self._definitions = data
+        return data
+
+    @asyncio.coroutine
+    def get_object_index(self, key):
+        """|coro|
+
+        Mainly for internal use with get_operator,
+        returns the "location" index for the key in the definitions
+
+        Returns
+        -------
+        str
+            the object's location index"""
+        defns = yield from self.get_definitions()
+
+        for x in defns:
+            if key in x and "objectIndex" in defns[x]:
+                return defns[x]["objectIndex"]
+
+        return None
 
 
 class Rank:
@@ -628,20 +670,20 @@ class Operator:
     def __init__(self, name, data):
         self.name = name.lower()
 
-        self.wins = data["roundwon"]
-        self.losses = data["roundlost"]
-        self.kills = data["kills"]
-        self.deaths = data["death"]
-        self.headshots = data["headshot"]
-        self.melees = data["meleekills"]
-        self.dbnos = data["dbno"]
-        self.xp = data["totalxp"]
-        self.time_played = data["timeplayed"]
+        self.wins = data.get("roundwon", 0)
+        self.losses = data.get("roundlost", 0)
+        self.kills = data.get("kills", 0)
+        self.deaths = data.get("death", 0)
+        self.headshots = data.get("headshot", 0)
+        self.melees = data.get("meleekills", 0)
+        self.dbnos = data.get("dbno", 0)
+        self.xp = data.get("totalxp", 0)
+        self.time_played = data.get("timeplayed", 0)
 
         statistic_name = self.name
         if self.name == "jackal": statistic_name = "cazador"
         if self.name == "mira": statistic_name = "black"
-        self.statistic = data[statistic_name]
+        self.statistic = data.get(statistic_name, 0)
         self.statistic_name = OperatorStatisticNames[self.name.upper()]
 
 
@@ -947,15 +989,12 @@ class Player:
 
         data = data["results"][self.id]
 
-        location = None
-        for x in data:
-            if x.startswith(operator_key) and data[x] != 0:
-                location = ":".join(x.split(":")[1:3])
-                break
+        location = yield from self.auth.get_object_index(operator_key)
 
         data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None and location in x}
-        if len(data) < 5:
-            raise InvalidRequest("invalid number of results for operator in JSON object %s" % data)
+
+        #if len(data) < 5:
+        #    raise InvalidRequest("invalid number of results for operator in JSON object %s" % data)
 
         oper = Operator(operator, data)
         self.operators[operator] = oper
