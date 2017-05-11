@@ -31,7 +31,7 @@ asyncio.get_event_loop().run_until_complete(run())
 
 ### TODO
 
-  -  implement terrorist hunt statistics
+  -  implement the ability to fetch data for multiple players at once in order to reduce the amount of api calls required when handling lots of players simultaneously.
 
 ### License
 
