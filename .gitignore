@@ -49,4 +49,5 @@ Temporary Items
 .apdisk
 __pycache__
 r6sapi.egg-info
+build
 dist
