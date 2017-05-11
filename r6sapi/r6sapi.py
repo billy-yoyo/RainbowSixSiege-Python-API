@@ -56,6 +56,7 @@ class Platforms:
     UPLAY = "uplay"
     XBOX = "xbl"
     PLAYSTATION = "psn"
+    PSN = "psn"
 
 
 valid_platforms = [x.lower() for x in dir(Platforms) if "_" not in x]
