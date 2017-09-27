@@ -16,7 +16,10 @@ import base64
 from urllib import parse
 
 
-class InvalidRequest(Exception): pass
+class InvalidRequest(Exception):
+    def __init__(self, *args, code=0, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.code = code
 
 
 class FailedToConnect(Exception): pass
@@ -56,7 +59,6 @@ class Platforms:
     UPLAY = "uplay"
     XBOX = "xbl"
     PLAYSTATION = "psn"
-    PSN = "psn"
 
 
 valid_platforms = [x.lower() for x in dir(Platforms) if "_" not in x]
@@ -133,7 +135,10 @@ OperatorIcons = {
     "BUCK": "https://ubistatic19-a.akamaihd.net/resource/en-GB/game/rainbow6/siege/R6-operators-badge-buck_237592.png",
     "CAPITAO": "https://ubistatic19-a.akamaihd.net/resource/en-GB/game/rainbow6/siege/R6-operators-badge-capitao_263100.png",
     "JACKAL": "https://ubistatic19-a.akamaihd.net/resource/en-GB/game/rainbow6/siege/R6-velvet-shell-badge-jackal_282825.png",
-    "MIRA": "https://ubistatic19-a.akamaihd.net/resource/en-GB/game/rainbow6/siege/R6-velvet-shell-badge-mira_282826.png"
+    "MIRA": "https://ubistatic19-a.akamaihd.net/resource/en-GB/game/rainbow6/siege/R6-velvet-shell-badge-mira_282826.png",
+    "ELA": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/badge-ela.63ec2d26.png",
+    "LESION": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/badge-lesion.07c3d352.png",
+    "YING": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/badge-ying.b88be612.png"
 }
 
 
@@ -167,7 +172,10 @@ OperatorStatistics = {
     "JAGER": "gadgetdestroybycatcher",
     "CAVEIRA": "interrogations",
     "JACKAL": "cazador_assist_kill",
-    "MIRA": "black_mirror_gadget_deployed"
+    "MIRA": "black_mirror_gadget_deployed",
+    "LESION": "caltrop_enemy_affected",
+    "ELA": "concussionmine_detonate",
+    "YING": "dazzler_gadget_detonate"
 }
 
 
@@ -201,7 +209,10 @@ OperatorStatisticNames = {
     "JAGER": "Projectiles Destroyed",
     "CAVEIRA": "Interrogations",
     "JACKAL": "Footprint Scan Assists",
-    "MIRA": "Black Mirrors Deployed"
+    "MIRA": "Black Mirrors Deployed",
+    "LESION": "Enemies poisoned by Gu mines",
+    "YING": "Candela devices detonated",
+    "ELA": "Grzmot Mines Detonated"
 }
 
 
@@ -330,12 +341,17 @@ class Auth:
         self.cache={}
 
         self._definitions = None
+        self._op_definitions = None
+        self._login_cooldown = 0
 
     @asyncio.coroutine
     def connect(self):
         """|coro|
 
         Connect to ubisoft, automatically called when needed"""
+        if time.time() < self._login_cooldown:
+            raise FailedToConnect("login on cooldown")
+
         resp = yield from self.session.post("https://connect.ubi.com/ubiservices/v2/profiles/sessions", headers = {
             "Content-Type": "application/json",
             "Ubi-AppId": self.appid,
@@ -343,6 +359,8 @@ class Auth:
         }, data=json.dumps({"rememberMe": True}))
 
         data = yield from resp.json()
+
+        print(data)
 
         if "ticket" in data:
             self.key = data.get("ticket")
@@ -354,6 +372,14 @@ class Auth:
 
     @asyncio.coroutine
     def get(self, *args, retries=0, referer=None, json=True, **kwargs):
+        if not self.key:
+            for i in range(self.max_connect_retries):
+                try:
+                    yield from self.connect()
+                    break
+                except FailedToConnect:
+                    pass
+
         if "headers" not in kwargs: kwargs["headers"] = {}
         kwargs["headers"]["Authorization"] = "Ubi_v1 t=" + self.key
         kwargs["headers"]["Ubi-AppId"] = self.appid
@@ -367,18 +393,34 @@ class Auth:
         resp = yield from self.session.get(*args, **kwargs)
 
         if json:
-            data = yield from resp.json()
+            try:
+                data = yield from resp.json()
+            except:
+                text = yield from resp.text()
+
+                message = text.split("h1>")
+                if len(message) > 1:
+                    message = message[1][:-2]
+                    code = 0
+                    if "502" in message: code = 502
+                else:
+                    message = text
+
+                raise InvalidRequest("Received a text response, expected JSON response. Message: %s" % message, code=code)
 
             if "httpCode" in data:
                 if data["httpCode"] == 401:
-                    if retries >= self.max_connect_retries: raise FailedToConnect
+                    if retries >= self.max_connect_retries:
+                        # wait 30 seconds before sending another request
+                        self._login_cooldown = time.time() + 60
+                        raise FailedToConnect
                     yield from self.connect()
                     result = yield from self.get(*args, retries=retries+1, **kwargs)
                     return result
                 else:
                     msg = data.get("message", "")
                     if data["httpCode"] == 404: msg = "missing resource %s" % data.get("resource", args[0])
-                    raise InvalidRequest("HTTP Code: %s, Message: %s" % (data["httpCode"], msg))
+                    raise InvalidRequest("HTTP Code: %s, Message: %s" % (data["httpCode"], msg), code=data["httpCode"])
 
             return data
         else:
@@ -415,7 +457,7 @@ class Auth:
 
         if "profiles" in data:
             results = [Player(self, x) for x in data["profiles"] if x.get("platformType", "") == platform]
-            if len(results) == 0: raise InvalidRequest
+            if len(results) == 0: raise InvalidRequest("No results")
             if self.cachetime != 0:
                 self.cache[platform][term] = [time.time() + self.cachetime, results]
             return results
@@ -441,6 +483,80 @@ class Auth:
             player found"""
         results = yield from self.get_players(term, platform)
         return results[0]
+
+    @asyncio.coroutine
+    def get_operator_definitions(self):
+        """|coro|
+
+        Retrieves a list of information about operators - their badge, unique statistic, etc.
+
+        Returns
+        -------
+        dict
+            operators"""
+        if self._op_definitions is not None:
+            return self._op_definitions
+
+        resp = yield from self.session.get("https://ubistatic-a.akamaihd.net/0058/prod/assets/data/operators.199806c9.json")
+
+        data = yield from resp.json()
+        self._op_definitions = data
+        return data
+
+    @asyncio.coroutine
+    def get_operator_index(self, name):
+        """|coro|
+
+        Gets the operators index from the operator definitions dict
+
+        Returns
+        -------
+        str
+            the operator index"""
+        opdefs = yield from self.get_operator_definitions()
+
+        name = name.lower()
+        if name not in opdefs:
+            return None
+
+        return opdefs[name]["index"]
+
+    @asyncio.coroutine
+    def get_operator_statistic(self, name):
+        """|coro|
+
+        Gets the operator unique statistic from the operator definitions dict
+
+        Returns
+        -------
+        str
+            the name of the operator unique statistic"""
+        opdefs = yield from self.get_operator_definitions()
+
+        name = name.lower()
+        if name not in opdefs:
+            return None
+
+        return opdefs[name]["uniqueStatistic"]["pvp"]["statisticId"]
+
+    @asyncio.coroutine
+    def get_operator_badge(self, name):
+        """|coro|
+
+        Gets the operator badge URL
+
+        Returns
+        -------
+        str
+            the operators badge URL"""
+        opdefs = yield from self.get_operator_definitions()
+
+        name = name.lower()
+        if name not in opdefs:
+            return None
+
+        return opdefs[name]["badge"]
+
 
     @asyncio.coroutine
     def get_definitions(self):
@@ -550,28 +666,49 @@ class Rank:
     ]
 
     RANK_ICONS = [
-        "https://i.imgur.com/ehILQ3i.jpg",
-        "https://i.imgur.com/6CxJoMn.jpg",
-        "https://i.imgur.com/eI11lah.jpg",
-        "https://i.imgur.com/0J0jSWB.jpg",
-        "https://i.imgur.com/42AC7RD.jpg",
-        "https://i.imgur.com/QD5LYD7.jpg",
-        "https://i.imgur.com/9AORiNm.jpg",
-        "https://i.imgur.com/hmPhPBj.jpg",
-        "https://i.imgur.com/D36ZfuR.jpg",
-        "https://i.imgur.com/m8GToyF.jpg",
-        "https://i.imgur.com/m8GToyF.jpg",
-        "https://i.imgur.com/EswGcx1.jpg",
-        "https://i.imgur.com/KmFpkNc.jpg",
-        "https://i.imgur.com/6Qg6aaH.jpg",
-        "https://i.imgur.com/B0s1o1h.jpg",
-        "https://i.imgur.com/ELbGMc7.jpg",
-        "https://i.imgur.com/ffDmiPk.jpg",
-        "https://i.imgur.com/Sv3PQQE.jpg",
-        "https://i.imgur.com/Uq3WhzZ.jpg",
-        "https://i.imgur.com/xx03Pc5.jpg",
-        "https://i.imgur.com/nODE0QI.jpg"
+        "https://i.imgur.com/sB11BIz.png",  # unranked
+        "https://i.imgur.com/ehILQ3i.jpg",  # copper 4
+        "https://i.imgur.com/6CxJoMn.jpg",  # copper 3
+        "https://i.imgur.com/eI11lah.jpg",  # copper 2
+        "https://i.imgur.com/0J0jSWB.jpg",  # copper 1
+        "https://i.imgur.com/42AC7RD.jpg",  # bronze 4
+        "https://i.imgur.com/QD5LYD7.jpg",  # bronze 3
+        "https://i.imgur.com/9AORiNm.jpg",  # bronze 2
+        "https://i.imgur.com/hmPhPBj.jpg",  # bronze 1
+        "https://i.imgur.com/D36ZfuR.jpg",  # silver 4
+        "https://i.imgur.com/m8GToyF.jpg",  # silver 3
+        "https://i.imgur.com/EswGcx1.jpg",  # silver 2
+        "https://i.imgur.com/KmFpkNc.jpg",  # silver 1
+        "https://i.imgur.com/6Qg6aaH.jpg",  # gold 4
+        "https://i.imgur.com/B0s1o1h.jpg",  # gold 3
+        "https://i.imgur.com/ELbGMc7.jpg",  # gold 2
+        "https://i.imgur.com/ffDmiPk.jpg",  # gold 1
+        "https://i.imgur.com/Sv3PQQE.jpg",  # plat 3
+        "https://i.imgur.com/Uq3WhzZ.jpg",  # plat 2
+        "https://i.imgur.com/xx03Pc5.jpg",  # plat 1
+        "https://i.imgur.com/nODE0QI.jpg"   # diamond
     ]
+
+    @staticmethod
+    def bracket_from_rank(rank_id):
+        if rank_id == 0: return 0
+        elif rank_id <= 4: return 1
+        elif rank_id <= 8: return 2
+        elif rank_id <= 12: return 3
+        elif rank_id <= 16: return 4
+        elif rank_id <= 19: return 5
+        else: return 6
+
+    @staticmethod
+    def bracket_name(bracket):
+        if bracket == 0: return "Unranked"
+        elif bracket == 1: return "Copper"
+        elif bracket == 2: return "Bronze"
+        elif bracket == 3: return "Silver"
+        elif bracket == 4: return "Gold"
+        elif bracket == 5: return "Platinum"
+        else: return "Diamond"
+
 
     UNRANKED = 0
     COPPER = 1
@@ -630,13 +767,7 @@ class Rank:
             the id for the rank bracket this rank is in
 
         """
-        if self.rank_id == 0: return 0
-        elif self.rank_id <= 4: return 1
-        elif self.rank_id <= 8: return 2
-        elif self.rank_id <= 12: return 3
-        elif self.rank_id <= 15: return 4
-        elif self.rank_id <= 19: return 5
-        else: return 6
+        return Rank.bracket_from_rank(self.rank_id)
 
 
 class Operator:
@@ -683,7 +814,10 @@ class Operator:
 
         statistic_name = self.name
         if self.name == "jackal": statistic_name = "cazador"
-        if self.name == "mira": statistic_name = "black"
+        elif self.name == "mira": statistic_name = "black"
+        elif self.name == "ying": statistic_name = "dazzler"
+        elif self.name == "ela": statistic_name = "concussionmine"
+        elif self.name == "lesion": statistic_name = "caltrop"
         self.statistic = data.get(statistic_name, 0)
         self.statistic_name = OperatorStatisticNames[self.name.upper()]
 
@@ -965,6 +1099,52 @@ class Player:
         return result
 
     @asyncio.coroutine
+    def load_all_operators(self):
+        """|coro|
+
+        Loads the player stats for all operators
+
+        Returns
+        -------
+        dict[:class:`Operator`]
+            the dictionary of all operators found"""
+        statistics = "operatorpvp_kills,operatorpvp_death,operatorpvp_roundwon,operatorpvp_roundlost,operatorpvp_meleekills,operatorpvp_totalxp,operatorpvp_headshot,operatorpvp_timeplayed,operatorpvp_dbno"
+        specifics = ",".join("operatorpvp_" + (name.lower() + "_" if name != "JACKAL" and name != "MIRA" else "") + OperatorStatistics[name] for name in OperatorStatistics)
+        statistics += "," + specifics
+
+        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=%s" % (self.spaceid, self.platform_url, self.id, statistics))
+
+        if not "results" in data or not self.id in data["results"]:
+            raise InvalidRequest("Missing results key in returned JSON object %s" % str(data))
+
+        data = data["results"][self.id]
+
+        for operator in OperatorStatistics:
+            location = yield from self.auth.get_operator_index(operator.lower())
+            op_data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None and location in x}
+
+            self.operators[operator.lower()] = Operator(operator.lower(), op_data)
+
+        return self.operators
+
+    @asyncio.coroutine
+    def get_all_operators(self):
+        """|coro|
+
+        Checks the player stats for all operators, loading them all again if any aren't found
+        This is significantly more efficient than calling get_operator for every operator name.
+
+        Returns
+        -------
+        dict[:class:`Operator`]
+            the dictionary of all operators found"""
+        if len(self.operators) >= len(OperatorStatistics):
+            return self.operators
+
+        result = yield from self.load_all_operators()
+        return result
+
+    @asyncio.coroutine
     def load_operator(self, operator):
         """|coro|
 
@@ -979,9 +1159,8 @@ class Player:
         -------
         :class:`Operator`
             the operator object found"""
-        operator_key = "operatorpvp_" + operator.lower() + "_" + OperatorStatistics[operator.upper()]
-        if operator.lower() == "jackal" or operator.lower() == "mira":
-            operator_key = "operatorpvp_" + OperatorStatistics[operator.upper()]
+        operator_key = yield from self.auth.get_operator_statistic(operator)
+        #print(operator_key)
 
         data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=operatorpvp_kills,operatorpvp_death,operatorpvp_roundwon,operatorpvp_roundlost,operatorpvp_meleekills,operatorpvp_totalxp,operatorpvp_headshot,operatorpvp_timeplayed,operatorpvp_dbno,%s" % (self.spaceid, self.platform_url, self.id, operator_key))
 
@@ -989,10 +1168,14 @@ class Player:
             raise InvalidRequest("Missing results key in returned JSON object %s" % str(data))
 
         data = data["results"][self.id]
+        print(data)
+        #print(data)
 
-        location = yield from self.auth.get_object_index(operator_key)
+        location = yield from self.auth.get_operator_index(operator)
+        #print(location)
 
         data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None and location in x}
+        print("%s :: %s" % (location, data))
 
         #if len(data) < 5:
         #    raise InvalidRequest("invalid number of results for operator in JSON object %s" % data)
@@ -1042,6 +1225,7 @@ class Player:
 
         for x in data:
             spl = x.split(":")
+            print(spl[0])
             category = spl[0].split("_")[1]
             try:
                 weapontype = int(spl[1]) - 1
