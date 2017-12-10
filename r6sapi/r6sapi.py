@@ -71,6 +71,7 @@ PlatformURLNames = {
 }
 
 
+#  DEPRECATED - this dict is no longer updated with new OPs (sorry)
 OperatorProfiles = {
     "DOC": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/large-doc.0b0321eb.png",
     "TWITCH": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/large-twitch.70219f02.png",
@@ -104,6 +105,7 @@ OperatorProfiles = {
 }
 
 
+#  DEPRECATED - use Auth.get_operator_badge() instead
 OperatorIcons = {
     "DEFAULT": "https://ubistatic19-a.akamaihd.net/resource/en-GB/game/rainbow6/siege/Glaz_Badge_229122.png",
     "HIBANA": "https://ubistatic19-a.akamaihd.net/resource/en-GB/game/rainbow6/siege/R6-operators-badge-hibana_275569.png",
@@ -138,10 +140,14 @@ OperatorIcons = {
     "MIRA": "https://ubistatic19-a.akamaihd.net/resource/en-GB/game/rainbow6/siege/R6-velvet-shell-badge-mira_282826.png",
     "ELA": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/badge-ela.63ec2d26.png",
     "LESION": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/badge-lesion.07c3d352.png",
-    "YING": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/badge-ying.b88be612.png"
+    "YING": "https://ubistatic-a.akamaihd.net/0058/prod/assets/images/badge-ying.b88be612.png",
+    "DOKKAEBI": "https://ubistatic19-a.akamaihd.net/resource/en-us/game/rainbow6/siege/r6-white-noise-badge-dokkaebi_306314.png",
+    "VIGIL": "https://ubistatic19-a.akamaihd.net/resource/en-us/game/rainbow6/siege/r6-white-noise-badge-vigil_306315.png",
+    "ZOFIA": "https://ubistatic19-a.akamaihd.net/resource/en-gb/game/rainbow6/siege/zofia_badge_306416.png"
 }
 
 
+#  DEPRECATED - use Auth.get_operator_statistic() instead
 OperatorStatistics = {
     "DOC": "teammaterevive",
     "TWITCH": "gadgetdestroybyshockdrone",
@@ -175,7 +181,10 @@ OperatorStatistics = {
     "MIRA": "black_mirror_gadget_deployed",
     "LESION": "caltrop_enemy_affected",
     "ELA": "concussionmine_detonate",
-    "YING": "dazzler_gadget_detonate"
+    "YING": "dazzler_gadget_detonate",
+    "DOKKAEBI": "???",
+    "VIGIL": "???",
+    "ZOFIA": "???"
 }
 
 
@@ -212,7 +221,10 @@ OperatorStatisticNames = {
     "MIRA": "Black Mirrors Deployed",
     "LESION": "Enemies poisoned by Gu mines",
     "YING": "Candela devices detonated",
-    "ELA": "Grzmot Mines Detonated"
+    "ELA": "Grzmot Mines Detonated",
+    "DOKKAEBI": "???",
+    "VIGIL": "???",
+    "ZOFIA": "???"
 }
 
 
@@ -360,15 +372,12 @@ class Auth:
 
         data = yield from resp.json()
 
-        print(data)
-
         if "ticket" in data:
             self.key = data.get("ticket")
             self.sessionid = data.get("sessionId")
             self.uncertain_spaceid = data.get("spaceId")
         else:
             raise FailedToConnect
-
 
     @asyncio.coroutine
     def get(self, *args, retries=0, referer=None, json=True, **kwargs):
@@ -379,6 +388,8 @@ class Auth:
                     break
                 except FailedToConnect:
                     pass
+            else:
+                raise FailedToConnect
 
         if "headers" not in kwargs: kwargs["headers"] = {}
         kwargs["headers"]["Authorization"] = "Ubi_v1 t=" + self.key
@@ -428,60 +439,85 @@ class Auth:
             return text
 
     @asyncio.coroutine
-    def get_players(self, term, platform):
+    def get_players(self, name=None, platform=None, uid=None):
         """|coro|
 
         get a list of players matching the term on that platform,
+        exactly one of uid and name must be given, platform must be given,
         this list almost always has only 1 element, so it's easier to use get_player
 
         Parameters
         ----------
-        term : str
+        name : str
             the name of the player you're searching for
         platform : str
             the name of the platform you're searching on (See :class:`Platforms`)
+        uid : str
+            the uid of the player you're searching for
 
         Returns
         -------
         list[:class:`Player`]
             list of found players"""
+
+        if name is None and uid is None:
+            raise TypeError("name and uid are both None, exactly one must be given")
+
+        if name is not None and uid is not None:
+            raise TypeError("cannot search by uid and name at the same time, please give one or the other")
+
+        if platform is None:
+            raise TypeError("platform cannot be None")
+
         if "platform" not in self.cache: self.cache[platform] = {}
 
-        if term in self.cache[platform]:
-            if self.cachetime > 0 and self.cache[platform][term][0] < time.time():
-                del self.cache[platform][term]
-            else:
-                return self.cache[platform][term][1]
+        if name:
+            cache_key = "NAME:%s" % name
+        else:
+            cache_key = "UID:%s" % uid
 
-        data = yield from self.get("https://public-ubiservices.ubi.com/v2/profiles?nameOnPlatform=%s&platformType=%s" % (parse.quote(term), parse.quote(platform)))
+        if cache_key in self.cache[platform]:
+            if self.cachetime > 0 and self.cache[platform][cache_key][0] < time.time():
+                del self.cache[platform][cache_key]
+            else:
+                return self.cache[platform][cache_key][1]
+
+        if name:
+            data = yield from self.get("https://public-ubiservices.ubi.com/v2/profiles?nameOnPlatform=%s&platformType=%s" % (parse.quote(name), parse.quote(platform)))
+        else:
+            data = yield from self.get("https://public-ubiservices.ubi.com/v2/users/%s/profiles?platformType=%s" % (uid, parse.quote(platform)))
 
         if "profiles" in data:
             results = [Player(self, x) for x in data["profiles"] if x.get("platformType", "") == platform]
             if len(results) == 0: raise InvalidRequest("No results")
             if self.cachetime != 0:
-                self.cache[platform][term] = [time.time() + self.cachetime, results]
+                self.cache[platform][cache_key] = [time.time() + self.cachetime, results]
             return results
         else:
             raise InvalidRequest("Missing key profiles in returned JSON object %s" % str(data))
 
     @asyncio.coroutine
-    def get_player(self, term, platform):
+    def get_player(self, name=None, platform=None, uid=None):
         """|coro|
 
-        Calls get_players and returns the first element
+        Calls get_players and returns the first element,
+        exactly one of uid and name must be given, platform must be given
 
         Parameters
         ----------
-        term : str
+        name : str
             the name of the player you're searching for
         platform : str
             the name of the platform you're searching on (See :class:`Platforms`)
+        uid : str
+            the uid of the player you're searching for
 
         Returns
         -------
         :class:`Player`
             player found"""
-        results = yield from self.get_players(term, platform)
+
+        results = yield from self.get_players(name=name, platform=platform, uid=uid)
         return results[0]
 
     @asyncio.coroutine
@@ -1159,23 +1195,24 @@ class Player:
         -------
         :class:`Operator`
             the operator object found"""
-        operator_key = yield from self.auth.get_operator_statistic(operator)
-        #print(operator_key)
+        location = yield from self.auth.get_operator_index(operator)
+        if location is None:
+            raise ValueError("invalid operator %s" % operator)
 
-        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=operatorpvp_kills,operatorpvp_death,operatorpvp_roundwon,operatorpvp_roundlost,operatorpvp_meleekills,operatorpvp_totalxp,operatorpvp_headshot,operatorpvp_timeplayed,operatorpvp_dbno,%s" % (self.spaceid, self.platform_url, self.id, operator_key))
+        operator_key = yield from self.auth.get_operator_statistic(operator)
+        if operator_key is not None:
+            operator_key = "," + operator_key
+        else:
+            operator_key = ""
+
+        data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=operatorpvp_kills,operatorpvp_death,operatorpvp_roundwon,operatorpvp_roundlost,operatorpvp_meleekills,operatorpvp_totalxp,operatorpvp_headshot,operatorpvp_timeplayed,operatorpvp_dbno%s" % (self.spaceid, self.platform_url, self.id, operator_key))
 
         if not "results" in data or not self.id in data["results"]:
             raise InvalidRequest("Missing results key in returned JSON object %s" % str(data))
 
         data = data["results"][self.id]
-        print(data)
-        #print(data)
-
-        location = yield from self.auth.get_operator_index(operator)
-        #print(location)
 
         data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None and location in x}
-        print("%s :: %s" % (location, data))
 
         #if len(data) < 5:
         #    raise InvalidRequest("invalid number of results for operator in JSON object %s" % data)
@@ -1225,7 +1262,6 @@ class Player:
 
         for x in data:
             spl = x.split(":")
-            print(spl[0])
             category = spl[0].split("_")[1]
             try:
                 weapontype = int(spl[1]) - 1
