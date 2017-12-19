@@ -182,9 +182,9 @@ OperatorStatistics = {
     "LESION": "caltrop_enemy_affected",
     "ELA": "concussionmine_detonate",
     "YING": "dazzler_gadget_detonate",
-    "DOKKAEBI": "???",
-    "VIGIL": "???",
-    "ZOFIA": "???"
+    "DOKKAEBI": "phoneshacked",
+    "VIGIL": "diminishedrealitymode",
+    "ZOFIA": "concussiongrenade_detonate"
 }
 
 
@@ -222,9 +222,9 @@ OperatorStatisticNames = {
     "LESION": "Enemies poisoned by Gu mines",
     "YING": "Candela devices detonated",
     "ELA": "Grzmot Mines Detonated",
-    "DOKKAEBI": "???",
-    "VIGIL": "???",
-    "ZOFIA": "???"
+    "DOKKAEBI": "Phones Hacked",
+    "VIGIL": "Drones Deceived",
+    "ZOFIA": "Concussion Grenades Detonated"
 }
 
 
@@ -533,7 +533,7 @@ class Auth:
         if self._op_definitions is not None:
             return self._op_definitions
 
-        resp = yield from self.session.get("https://ubistatic-a.akamaihd.net/0058/prod/assets/data/operators.199806c9.json")
+        resp = yield from self.session.get("https://ubistatic-a.akamaihd.net/0058/prod/assets/data/operators.9e91afd5.json")
 
         data = yield from resp.json()
         self._op_definitions = data
@@ -848,13 +848,11 @@ class Operator:
         self.xp = data.get("totalxp", 0)
         self.time_played = data.get("timeplayed", 0)
 
-        statistic_name = self.name
-        if self.name == "jackal": statistic_name = "cazador"
-        elif self.name == "mira": statistic_name = "black"
-        elif self.name == "ying": statistic_name = "dazzler"
-        elif self.name == "ela": statistic_name = "concussionmine"
-        elif self.name == "lesion": statistic_name = "caltrop"
-        self.statistic = data.get(statistic_name, 0)
+        if "__statistic_name" in data:
+            self.statistic = data.get(data.get("__statistic_name"), 0)
+        else:
+            self.statistic = 0
+
         self.statistic_name = OperatorStatisticNames[self.name.upper()]
 
 
@@ -1213,6 +1211,7 @@ class Player:
         data = data["results"][self.id]
 
         data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None and location in x}
+        data["__statistic_name"] = operator_key.split("_")[1]
 
         #if len(data) < 5:
         #    raise InvalidRequest("invalid number of results for operator in JSON object %s" % data)
