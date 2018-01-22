@@ -1156,6 +1156,8 @@ class Player:
         for operator in OperatorStatistics:
             location = yield from self.auth.get_operator_index(operator.lower())
             op_data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None and location in x}
+            operator_key = yield from self.auth.get_operator_statistic(operator)
+            op_data["__statistic_name"] = operator_key.split("_")[1]
 
             self.operators[operator.lower()] = Operator(operator.lower(), op_data)
 
