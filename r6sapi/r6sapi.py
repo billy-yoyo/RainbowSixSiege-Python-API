@@ -224,7 +224,9 @@ OperatorStatisticNames = {
     "ELA": "Grzmot Mines Detonated",
     "DOKKAEBI": "Phones Hacked",
     "VIGIL": "Drones Deceived",
-    "ZOFIA": "Concussion Grenades Detonated"
+    "ZOFIA": "Concussion Grenades Detonated",
+    "FINKA": "Nano-boosts used",
+    "LION": "Enemies revealed"
 }
 
 
@@ -533,7 +535,7 @@ class Auth:
         if self._op_definitions is not None:
             return self._op_definitions
 
-        resp = yield from self.session.get("https://ubistatic-a.akamaihd.net/0058/prod/assets/data/operators.9e91afd5.json")
+        resp = yield from self.session.get("https://ubistatic-a.akamaihd.net/0058/prod/assets/data/operators.79229c6d.json")
 
         data = yield from resp.json()
         self._op_definitions = data
