@@ -193,7 +193,7 @@ OperatorStatisticNames = {
     "TWITCH": "Gadgets Destroyed With Shock Drone",
     "ASH": "Walls Breached",
     "THERMITE": "Reinforcements Breached",
-    "BLITZ": "Enemies Flahsed",
+    "BLITZ": "Enemies Flashed",
     "BUCK": "Shotgun Kills",
     "HIBANA": "Projectiles Detonated",
     "KAPKAN": "Boobytrap Kills",
