@@ -1,5 +1,5 @@
 """
-Copyright (c) 2016-2017 billyoyo
+Copyright (c) 2016-2018 billyoyo
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -226,7 +226,9 @@ OperatorStatisticNames = {
     "VIGIL": "Drones Deceived",
     "ZOFIA": "Concussion Grenades Detonated",
     "FINKA": "Nano-boosts used",
-    "LION": "Enemies revealed"
+    "LION": "Enemies revealed",
+    "ALIBI": "Enemies pinged by decoys",
+    "MAESTRO": "Enemies spotted with turret camera"
 }
 
 
@@ -535,7 +537,7 @@ class Auth:
         if self._op_definitions is not None:
             return self._op_definitions
 
-        resp = yield from self.session.get("https://ubistatic-a.akamaihd.net/0058/prod/assets/data/operators.79229c6d.json")
+        resp = yield from self.session.get("https://ubistatic-a.akamaihd.net/0058/prod/assets/data/operators.3a2655c8.json")
 
         data = yield from resp.json()
         self._op_definitions = data
