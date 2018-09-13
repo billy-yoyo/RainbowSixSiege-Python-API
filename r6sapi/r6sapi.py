@@ -228,7 +228,9 @@ OperatorStatisticNames = {
     "FINKA": "Nano-boosts used",
     "LION": "Enemies revealed",
     "ALIBI": "Enemies pinged by decoys",
-    "MAESTRO": "Enemies spotted with turret camera"
+    "MAESTRO": "Enemies spotted with turret camera",
+    "MAVERICK": "D.I.Y. Blowtorch",
+    "CLASH": "CCE Shield",
 }
 
 
@@ -537,7 +539,7 @@ class Auth:
         if self._op_definitions is not None:
             return self._op_definitions
 
-        resp = yield from self.session.get("https://ubistatic-a.akamaihd.net/0058/prod/assets/data/operators.3a2655c8.json")
+        resp = yield from self.session.get("https://game-rainbow6.ubi.com/assets/data/operators.682af7ce0969c4ec.json")
 
         data = yield from resp.json()
         self._op_definitions = data
