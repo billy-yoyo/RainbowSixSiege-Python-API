@@ -52,3 +52,6 @@ r6sapi.egg-info
 build
 dist
 docs
+=======
+.idea
+.git
