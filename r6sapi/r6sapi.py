@@ -327,8 +327,13 @@ class Auth:
     def get_basic_token(email, password):
         return base64.b64encode((email + ":" + password).encode("utf-8")).decode("utf-8")
 
-    def __init__(self, email=None, password=None, token=None, appid=None, cachetime=120, max_connect_retries=1):
-        self.session = aiohttp.ClientSession()
+    def __init__(self, email=None, password=None, token=None, appid=None,
+                 cachetime=120, max_connect_retries=1, session=None):
+        if session is not None:
+            self.session = session
+        else:
+            self.session = aiohttp.ClientSession()
+
         self.max_connect_retries = max_connect_retries
 
         if email is not None and password is not None:
