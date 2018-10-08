@@ -544,7 +544,7 @@ class Auth:
         if self._op_definitions is not None:
             return self._op_definitions
 
-        resp = yield from self.session.get("https://game-rainbow6.ubi.com/assets/data/operators.682af7ce0969c4ec.json")
+        resp = yield from self.session.get("https://game-rainbow6.ubi.com/assets/data/operators.682af7ce0969c4e.json")
 
         data = yield from resp.json()
         self._op_definitions = data
@@ -602,7 +602,12 @@ class Auth:
         if name not in opdefs:
             return None
 
-        return opdefs[name]["badge"]
+        badge = opdefs[name]["badge"]
+
+        if not badge.startswith("http"):
+            badge = "https://game-rainbow6.ubi.com/" + badge
+
+        return badge
 
 
     @asyncio.coroutine
