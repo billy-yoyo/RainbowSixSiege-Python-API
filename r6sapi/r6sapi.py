@@ -329,8 +329,13 @@ class Auth:
     def get_basic_token(email, password):
         return base64.b64encode((email + ":" + password).encode("utf-8")).decode("utf-8")
 
-    def __init__(self, email=None, password=None, token=None, appid=None, cachetime=120, max_connect_retries=1):
-        self.session = aiohttp.ClientSession()
+    def __init__(self, email=None, password=None, token=None, appid=None,
+                 cachetime=120, max_connect_retries=1, session=None):
+        if session is not None:
+            self.session = session
+        else:
+            self.session = aiohttp.ClientSession()
+
         self.max_connect_retries = max_connect_retries
 
         if email is not None and password is not None:
@@ -540,9 +545,7 @@ class Auth:
             operators"""
         if self._op_definitions is not None:
             return self._op_definitions
-
         resp = yield from self.session.get("https://game-rainbow6.ubi.com/assets/data/operators.bbbf29a090.json")
-
         data = yield from resp.json()
         self._op_definitions = data
         return data
@@ -599,7 +602,12 @@ class Auth:
         if name not in opdefs:
             return None
 
-        return opdefs[name]["badge"]
+        badge = opdefs[name]["badge"]
+
+        if not badge.startswith("http"):
+            badge = "https://game-rainbow6.ubi.com/" + badge
+
+        return badge
 
 
     @asyncio.coroutine
@@ -1151,17 +1159,20 @@ class Player:
         dict[:class:`Operator`]
             the dictionary of all operators found"""
         statistics = "operatorpvp_kills,operatorpvp_death,operatorpvp_roundwon,operatorpvp_roundlost,operatorpvp_meleekills,operatorpvp_totalxp,operatorpvp_headshot,operatorpvp_timeplayed,operatorpvp_dbno"
-        specifics = ",".join("operatorpvp_" + (name.lower() + "_" if name != "JACKAL" and name != "MIRA" else "") + OperatorStatistics[name] for name in OperatorStatistics)
-        statistics += "," + specifics
+
+        for operator in OperatorStatisticNames:
+            operator_key = yield from self.auth.get_operator_statistic(operator)
+            if operator_key:
+                statistics += "," + operator_key
 
         data = yield from self.auth.get("https://public-ubiservices.ubi.com/v1/spaces/%s/sandboxes/%s/playerstats2/statistics?populations=%s&statistics=%s" % (self.spaceid, self.platform_url, self.id, statistics))
 
-        if not "results" in data or not self.id in data["results"]:
+        if "results" not in data or not self.id in data["results"]:
             raise InvalidRequest("Missing results key in returned JSON object %s" % str(data))
 
         data = data["results"][self.id]
 
-        for operator in OperatorStatistics:
+        for operator in OperatorStatisticNames:
             location = yield from self.auth.get_operator_index(operator.lower())
             op_data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None and location in x}
             operator_key = yield from self.auth.get_operator_statistic(operator)
@@ -1182,7 +1193,7 @@ class Player:
         -------
         dict[:class:`Operator`]
             the dictionary of all operators found"""
-        if len(self.operators) >= len(OperatorStatistics):
+        if len(self.operators) >= len(OperatorStatisticNames):
             return self.operators
 
         result = yield from self.load_all_operators()
