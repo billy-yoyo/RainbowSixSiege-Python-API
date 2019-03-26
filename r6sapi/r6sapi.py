@@ -368,6 +368,9 @@ class Auth:
         self._definitions = None
         self._op_definitions = None
         self._login_cooldown = 0
+    
+    def __del__(self):
+        self.session.close()
 
     @asyncio.coroutine
     def connect(self):
