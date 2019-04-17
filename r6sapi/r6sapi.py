@@ -231,8 +231,10 @@ OperatorStatisticNames = {
     "MAESTRO": "Enemies spotted with turret camera",
     "MAVERICK": "D.I.Y. Blowtorch",
     "CLASH": "CCE Shield",
-    "NOMAD": "Airjabs Detonated",
-    "KAID": "Hatches Electrified"
+    "NOMAD": "No statistic available",
+    "KAID": "No statistic available",
+    "MOZZIE": "Drones Hacked",
+    "GRIDLOCK": "Trax Deployed"
 }
 
 
@@ -368,7 +370,7 @@ class Auth:
         self._definitions = None
         self._op_definitions = None
         self._login_cooldown = 0
-    
+
     def __del__(self):
         self.session.close()
 
@@ -548,7 +550,9 @@ class Auth:
             operators"""
         if self._op_definitions is not None:
             return self._op_definitions
-        resp = yield from self.session.get("https://game-rainbow6.ubi.com/assets/data/operators.bbbf29a090.json")
+
+        resp = yield from self.session.get("https://game-rainbow6.ubi.com/assets/data/operators.24b865895.json")
+
         data = yield from resp.json()
         self._op_definitions = data
         return data
@@ -585,6 +589,10 @@ class Auth:
 
         name = name.lower()
         if name not in opdefs:
+            return None
+
+        # some operators (e.g. Kaid and Nomad) don't have a unique statistic sectoin for some reason...
+        if "uniqueStatistic" not in opdefs[name] or "pvp" not in opdefs[name]["uniqueStatistic"]:
             return None
 
         return opdefs[name]["uniqueStatistic"]["pvp"]["statisticId"]
@@ -1179,7 +1187,8 @@ class Player:
             location = yield from self.auth.get_operator_index(operator.lower())
             op_data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None and location in x}
             operator_key = yield from self.auth.get_operator_statistic(operator)
-            op_data["__statistic_name"] = operator_key.split("_")[1]
+            if operator_key:
+                op_data["__statistic_name"] = operator_key.split("_")[1]
 
             self.operators[operator.lower()] = Operator(operator.lower(), op_data)
 
@@ -1235,7 +1244,9 @@ class Player:
         data = data["results"][self.id]
 
         data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None and location in x}
-        data["__statistic_name"] = operator_key.split("_")[1]
+
+        if operator_key:
+            data["__statistic_name"] = operator_key.split("_")[1]
 
         #if len(data) < 5:
         #    raise InvalidRequest("invalid number of results for operator in JSON object %s" % data)
