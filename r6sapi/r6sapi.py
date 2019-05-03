@@ -286,6 +286,7 @@ GamemodeNames = {
 
 class Auth:
     """Holds your authentication information. Used to retrieve Player objects
+    Once you're done with the auth object, auth.close() should be called.
 
     Parameters
     ----------
@@ -301,6 +302,8 @@ class Auth:
         How long players are cached for (in seconds)
     max_connect_retries : Optional[int]
         How many times the auth client will automatically try to reconnect, high numbers can get you temporarily banned
+    refresh_session_period : Optional[int]
+        How frequently the http session should be refreshed, in seconds. Negative number for never. Defaults to 3 minutes.
 
     Attributes
     ----------
@@ -332,13 +335,15 @@ class Auth:
         return base64.b64encode((email + ":" + password).encode("utf-8")).decode("utf-8")
 
     def __init__(self, email=None, password=None, token=None, appid=None,
-                 cachetime=120, max_connect_retries=1, session=None):
+                 cachetime=120, max_connect_retries=1, session=None,
+                 refresh_session_period=180):
         if session is not None:
             self.session = session
         else:
             self.session = aiohttp.ClientSession()
 
         self.max_connect_retries = max_connect_retries
+        self.refresh_session_period = refresh_session_period
 
         if email is not None and password is not None:
             self.token = Auth.get_basic_token(email, password)
@@ -370,9 +375,44 @@ class Auth:
         self._definitions = None
         self._op_definitions = None
         self._login_cooldown = 0
+        self._session_start = time.time()
 
-    def __del__(self):
-        self.session.close()
+    @asyncio.coroutine
+    def close(self):
+        """|coro|
+        
+        Closes the session associated with the auth object"""
+        yield from self.session.close()
+
+    @asyncio.coroutine
+    def refresh_session(self):
+        """|coro|
+
+        Closes the current session and opens a new one"""
+        if self.session:
+            try:
+                yield from self.session.close()
+            except:
+                # we don't care if closing the session does nothing
+                pass 
+
+        self.session = aiohttp.ClientSession()
+        self._session_start = time.time()
+
+    @asyncio.coroutine
+    def _ensure_session_valid(self):
+        if not self.session:
+            yield from self.refresh_session()
+        elif self.refresh_session_period >= 0 and time.time() - self._session_start >= self.refresh_session_period:
+            yield from self.refresh_session()
+
+    @asyncio.coroutine
+    def get_session(self):
+        """|coro|
+        
+        Retrieves the current session, ensuring it's valid first"""
+        yield from self._ensure_session_valid()
+        return self.session
 
     @asyncio.coroutine
     def connect(self):
@@ -382,7 +422,8 @@ class Auth:
         if time.time() < self._login_cooldown:
             raise FailedToConnect("login on cooldown")
 
-        resp = yield from self.session.post("https://connect.ubi.com/ubiservices/v2/profiles/sessions", headers = {
+        session = yield from self.get_session()
+        resp = yield from session.post("https://connect.ubi.com/ubiservices/v2/profiles/sessions", headers = {
             "Content-Type": "application/json",
             "Ubi-AppId": self.appid,
             "Authorization": "Basic " + self.token
@@ -390,24 +431,39 @@ class Auth:
 
         data = yield from resp.json()
 
+        message = "Unknown Error"
+        if "message" in data and "httpCode" in data:
+            message = "HTTP %s: %s" % (data["httpCode"], data["message"])
+        elif "message" in data:
+            message = data["message"]
+        elif "httpCode" in data:
+            message = str(data["httpCode"])
+
         if "ticket" in data:
             self.key = data.get("ticket")
             self.sessionid = data.get("sessionId")
             self.uncertain_spaceid = data.get("spaceId")
         else:
-            raise FailedToConnect
+            raise FailedToConnect(message)
 
     @asyncio.coroutine
     def get(self, *args, retries=0, referer=None, json=True, **kwargs):
         if not self.key:
+            last_error = None
             for i in range(self.max_connect_retries):
                 try:
                     yield from self.connect()
                     break
-                except FailedToConnect:
-                    pass
+                except FailedToConnect as e:
+                    last_error = e
             else:
-                raise FailedToConnect
+                # assume this error is going uncaught, so we close the session
+                yield from self.close()
+
+                if last_error:
+                    raise last_error
+                else:
+                    raise FailedToConnect("Unknown Error")
 
         if "headers" not in kwargs: kwargs["headers"] = {}
         kwargs["headers"]["Authorization"] = "Ubi_v1 t=" + self.key
@@ -419,7 +475,8 @@ class Auth:
                 referer = "https://game-rainbow6.ubi.com/en-gb/uplay/player-statistics/%s/multiplayer" % referer.id
             kwargs["headers"]["Referer"] = str(referer)
 
-        resp = yield from self.session.get(*args, **kwargs)
+        session = yield from self.get_session()
+        resp = yield from session.get(*args, **kwargs)
 
         if json:
             try:
@@ -441,15 +498,16 @@ class Auth:
                 if data["httpCode"] == 401:
                     if retries >= self.max_connect_retries:
                         # wait 30 seconds before sending another request
-                        self._login_cooldown = time.time() + 60
-                        raise FailedToConnect
-                    yield from self.connect()
+                        self._login_cooldown = time.time() + 30
+
+                    # key no longer works, so remove key and let the following .get() call refresh it
+                    self.key = None
                     result = yield from self.get(*args, retries=retries+1, **kwargs)
                     return result
                 else:
                     msg = data.get("message", "")
-                    if data["httpCode"] == 404: msg = "missing resource %s" % data.get("resource", args[0])
-                    raise InvalidRequest("HTTP Code: %s, Message: %s" % (data["httpCode"], msg), code=data["httpCode"])
+                    if data["httpCode"] == 404: msg = "Missing resource %s" % data.get("resource", args[0])
+                    raise InvalidRequest("HTTP %s: %s" % (data["httpCode"], msg), code=data["httpCode"])
 
             return data
         else:
@@ -551,7 +609,8 @@ class Auth:
         if self._op_definitions is not None:
             return self._op_definitions
 
-        resp = yield from self.session.get("https://game-rainbow6.ubi.com/assets/data/operators.24b865895.json")
+        session = yield from self.get_session()
+        resp = yield from session.get("https://game-rainbow6.ubi.com/assets/data/operators.24b865895.json")
 
         data = yield from resp.json()
         self._op_definitions = data
@@ -635,7 +694,8 @@ class Auth:
         if self._definitions is not None:
             return self._definitions
 
-        resp = yield from self.session.get("https://ubistatic-a.akamaihd.net/0058/prod/assets/data/statistics.definitions.eb165e13.json")
+        session = yield from self.get_session()
+        resp = yield from session.get("https://ubistatic-a.akamaihd.net/0058/prod/assets/data/statistics.definitions.eb165e13.json")
 
         data = yield from resp.json()
         self._definitions = data
