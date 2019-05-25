@@ -15,6 +15,7 @@ with open('README.md') as f:
 
 setup(name='r6sapi',
       author='billyoyo',
+      author_email='billyoyo@hotmail.co.uk',
       url='https://github.com/billy-yoyo/RainbowSixSiege-Python-API',
       version=version,
       packages=find_packages(),
