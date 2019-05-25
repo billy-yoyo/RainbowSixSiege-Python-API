@@ -32,7 +32,7 @@ asyncio.get_event_loop().run_until_complete(run())
 
 ### TODO
 
-  -  implement the ability to fetch data for multiple players at once in order to reduce the amount of api calls required when handling lots of players simultaneously.
+  -  nothing for now, open an issue if you'd like any new feature added.
 
 ### License
 
