@@ -51,6 +51,8 @@ __pycache__
 r6sapi.egg-info
 build
 dist
-docs
 .idea
 .git
+
+
+docs/_build/

@@ -17,6 +17,13 @@ Player
     :members:
 
 
+PlayerBatch
+-----------
+
+.. autoclass:: PlayerBatch
+    :members:
+
+
 
 Rank
 ----
