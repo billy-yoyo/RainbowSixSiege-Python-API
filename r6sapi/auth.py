@@ -383,7 +383,7 @@ class Auth:
             return self._op_definitions
 
         session = yield from self.get_session()
-        resp = yield from session.get("https://game-rainbow6.ubi.com/assets/data/operators.24b865895.json")
+        resp = yield from session.get("https://game-rainbow6.ubi.com/assets/data/operators.a45bd7c1.json")
 
         data = yield from resp.json()
         self._op_definitions = data

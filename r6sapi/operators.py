@@ -125,7 +125,11 @@ OperatorStatistics = {
     "YING": "dazzler_gadget_detonate",
     "DOKKAEBI": "phoneshacked",
     "VIGIL": "diminishedrealitymode",
-    "ZOFIA": "concussiongrenade_detonate"
+    "ZOFIA": "concussiongrenade_detonate",
+    "WARDEN": "Observation Tool Deceived",
+    "NOKK": "Observation Tool Deceived",
+    "AMARU": "Distance Reeled",
+    "GOYO": "Volcan Detonate"
 }
 
 
