@@ -127,7 +127,7 @@ OperatorStatistics = {
     "VIGIL": "diminishedrealitymode",
     "ZOFIA": "concussiongrenade_detonate",
     "WARDEN": "Observation Tool Deceived",
-    "NOKK": "Observation Tool Deceived",
+    "NAKK": "Observation Tool Deceived",
     "AMARU": "Distance Reeled",
     "GOYO": "Volcan Detonate"
 }
