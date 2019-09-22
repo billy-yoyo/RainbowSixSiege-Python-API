@@ -1,6 +1,6 @@
 # r6sapi
 
-r6sapi is an easy-to-use asynchronous API for rainbow six siege, written in python. To use it you'll need use your ubisoft email and password
+r6sapi is an easy-to-use asynchronous API for rainbow six siege, written in python. To use it you'll need to use your ubisoft email and password
 
 ### Installation
 
