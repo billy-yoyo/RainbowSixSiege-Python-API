@@ -109,6 +109,7 @@ class Auth:
 
         self._definitions = None
         self._op_definitions = None
+        self._rank_definitions = None
         self._login_cooldown = 0
         self._session_start = time.time()
 
@@ -383,7 +384,7 @@ class Auth:
             return self._op_definitions
 
         session = yield from self.get_session()
-        resp = yield from session.get("https://game-rainbow6.ubi.com/assets/data/operators.24b865895.json")
+        resp = yield from session.get("https://game-rainbow6.ubi.com/assets/data/operators.a45bd7c1.json")
 
         data = yield from resp.json()
         self._op_definitions = data
@@ -452,6 +453,25 @@ class Auth:
 
         return badge
 
+    @asyncio.coroutine
+    def get_rank_definitions(self):
+        """|coro|
+
+        Retrieves a list of information about ranks - their badge, divisions, etc.
+
+        Returns
+        -------
+        dict
+            ranks"""
+        if self._rank_definitions is not None:
+            return self._rank_definitions
+
+        session = yield from self.get_session()
+        resp = yield from session.get("https://game-rainbow6.ubi.com/assets/data/ranks.c2baadef.json")
+
+        data = yield from resp.json()
+        self._rank_definitions = data
+        return data
 
     @asyncio.coroutine
     def get_definitions(self):

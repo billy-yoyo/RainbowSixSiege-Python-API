@@ -175,7 +175,11 @@ OperatorStatisticNames = {
     "NOMAD": "No statistic available",
     "KAID": "No statistic available",
     "MOZZIE": "Drones Hacked",
-    "GRIDLOCK": "Trax Deployed"
+    "GRIDLOCK": "Trax Deployed",
+    "WARDEN": "Flashes Resisted",
+    "NAKK": "Observation tools deceived",
+    "AMARU": "Distance Reeled",
+    "GOYO": "Volcans Detonated"
 }
 
 class Operator:

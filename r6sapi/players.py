@@ -274,9 +274,11 @@ class Player:
             data = yield from self.auth.get(self.url_builder.load_rank_url(region, season))
             self._last_data = data
 
+        rank_definitions = yield from self.auth.get_rank_definitions()
+
         if "players" in data and self.id in data["players"]:
             regionkey = "%s:%s" % (region, season)
-            self.ranks[regionkey] = Rank(data["players"][self.id])
+            self.ranks[regionkey] = Rank(data["players"][self.id], rank_definitions)
             return self.ranks[regionkey]
         else:
             raise InvalidRequest("Missing players key in returned JSON object %s" % str(data))
