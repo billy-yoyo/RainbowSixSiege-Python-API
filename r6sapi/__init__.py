@@ -12,7 +12,7 @@ __title__ = "r6sapi"
 __author__ = "Billyoyo"
 __license__ = "MIT"
 __copyright__ = "Copyright (c) 2016-2019 Billyoyo"
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 from .auth import *
 from .ranks import *
