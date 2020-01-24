@@ -53,6 +53,6 @@ build
 dist
 .idea
 .git
-
+testing
 
 docs/_build/

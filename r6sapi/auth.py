@@ -19,6 +19,30 @@ from .players import Player, PlayerBatch
 from .exceptions import *
 
 
+DEFAULT_DEFINITION_HASHES = {
+    "ranks": {
+        "hash":"524b1592",
+        "url":"https://game-rainbow6.ubi.com/assets/data/ranks.524b1592.json"
+    },
+    "seasons": {
+        "hash":"7985adeb",
+        "url":"https://game-rainbow6.ubi.com/assets/data/seasons.7985adeb.json"
+    },
+    "operators": {
+        "hash":"9d15c77e",
+        "url":"https://game-rainbow6.ubi.com/assets/data/operators.9d15c77e.json"
+    },
+    "weapons": {
+        "hash":"8a9b3d9e",
+        "url":"https://game-rainbow6.ubi.com/assets/data/weapons.8a9b3d9e.json"
+    },
+    "rewards": {
+        "hash":"def62ec6",
+        "url":"https://game-rainbow6.ubi.com/assets/data/rewards.def62ec6.json"
+    }
+}
+
+
 class Auth:
     """Holds your authentication information. Used to retrieve Player objects
     Once you're done with the auth object, auth.close() should be called.
@@ -107,6 +131,7 @@ class Auth:
         self.cachetime = cachetime
         self.cache={}
 
+        self._definition_hashes = None
         self._definitions = None
         self._op_definitions = None
         self._rank_definitions = None
@@ -371,6 +396,27 @@ class Auth:
         return PlayerBatch(players)
             
     @asyncio.coroutine
+    def get_definition_hashes(self):
+        if self._definition_hashes is not None:
+            return self._definition_hashes
+
+        try:
+            session = yield from self.get_session()
+            resp = yield from session.get("https://r6unhash.tk/")
+
+            data = yield from resp.json()
+            data = data["unlocalized"]["data"]
+
+            if data["operators"]["url"] and data["ranks"]["url"]:
+                self._definition_hashes = data
+            else:
+                self._definition_hashes = DEFAULT_DEFINITION_HASHES
+            return self._definition_hashes
+        except:
+            print("Warning, definition hashes could not be retrieved. Hashes will probably be out of date.")
+            return DEFAULT_DEFINITION_HASHES
+
+    @asyncio.coroutine
     def get_operator_definitions(self):
         """|coro|
 
@@ -383,8 +429,10 @@ class Auth:
         if self._op_definitions is not None:
             return self._op_definitions
 
+        hashes = yield from self.get_definition_hashes()
+
         session = yield from self.get_session()
-        resp = yield from session.get("https://game-rainbow6.ubi.com/assets/data/operators.a45bd7c1.json")
+        resp = yield from session.get(hashes["operators"]["url"])
 
         data = yield from resp.json()
         self._op_definitions = data
@@ -466,8 +514,10 @@ class Auth:
         if self._rank_definitions is not None:
             return self._rank_definitions
 
+        hashes = yield from self.get_definition_hashes()
+
         session = yield from self.get_session()
-        resp = yield from session.get("https://game-rainbow6.ubi.com/assets/data/ranks.c2baadef.json")
+        resp = yield from session.get(hashes["ranks"]["url"])
 
         data = yield from resp.json()
         self._rank_definitions = data
@@ -488,6 +538,8 @@ class Auth:
             return self._definitions
 
         session = yield from self.get_session()
+
+        # no known hash location for this url
         resp = yield from session.get("https://ubistatic-a.akamaihd.net/0058/prod/assets/data/statistics.definitions.eb165e13.json")
 
         data = yield from resp.json()
