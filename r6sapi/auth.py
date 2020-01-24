@@ -159,7 +159,7 @@ class Auth:
             raise FailedToConnect("login on cooldown")
 
         session = yield from self.get_session()
-        resp = yield from session.post("https://connect.ubi.com/ubiservices/v2/profiles/sessions", headers = {
+        resp = yield from session.post("https://public-ubiservices.ubi.com/v3/profiles/sessions", headers = {
             "Content-Type": "application/json",
             "Ubi-AppId": self.appid,
             "Authorization": "Basic " + self.token
