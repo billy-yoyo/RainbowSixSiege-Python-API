@@ -179,7 +179,11 @@ OperatorStatisticNames = {
     "WARDEN": "Flashes Resisted",
     "NAKK": "Observation tools deceived",
     "AMARU": "Distance Reeled",
-    "GOYO": "Volcans Detonated"
+    "GOYO": "Volcans Detonated",
+    "KALI": "Gadgets destroyed with explosive lance",
+    "WAMAI": "Gadgets destroyed by magnet",
+    "IANA": "Kills after using replicator",
+    "ORYX": "kills after dash"
 }
 
 class Operator:
