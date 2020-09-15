@@ -29,8 +29,8 @@ DEFAULT_DEFINITION_HASHES = {
         "url":"https://game-rainbow6.ubi.com/assets/data/seasons.7985adeb.json"
     },
     "operators": {
-        "hash":"ee566014",
-        "url":"https://game-rainbow6.ubi.com/assets/data/operators.ee566014.json"
+        "hash":"269788a7",
+        "url":"https://game-rainbow6.ubi.com/assets/data/operators.269788a7.json"
     },
     "weapons": {
         "hash":"8a9b3d9e",
