@@ -177,7 +177,7 @@ OperatorStatisticNames = {
     "MOZZIE": "Drones Hacked",
     "GRIDLOCK": "Trax Deployed",
     "WARDEN": "Flashes Resisted",
-    "NAKK": "Observation tools deceived",
+    "NOKK": "Observation tools deceived",
     "AMARU": "Distance Reeled",
     "GOYO": "Volcans Detonated",
     "KALI": "Gadgets destroyed with explosive lance",
