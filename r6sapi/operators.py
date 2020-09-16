@@ -183,9 +183,9 @@ OperatorStatisticNames = {
     "KALI": "Gadgets destroyed with explosive lance",
     "WAMAI": "Gadgets destroyed by magnet",
     "IANA": "Kills after using replicator",
-    "ORYX": "kills after dash"
-    "ACE": "S.E.L.M.A. Detonations"
-    "MELUSI": "Attackers slowed by Banshee"
+    "ORYX": "kills after dash",
+    "ACE": "S.E.L.M.A. Detonations",
+    "MELUSI": "Attackers slowed by Banshee",
     "ZERO": "Gadgets Destroyed by ARGUS Camera"
 }
 
