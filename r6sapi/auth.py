@@ -320,9 +320,9 @@ class Auth:
                 return self.cache[platform][cache_key][1]
 
         if name:
-            data = yield from self.get("https://public-ubiservices.ubi.com/v2/profiles?nameOnPlatform=%s&platformType=%s" % (parse.quote(name), parse.quote(platform)))
+            data = yield from self.get("https://public-ubiservices.ubi.com/v3/profiles?nameOnPlatform=%s&platformType=%s" % (parse.quote(name), parse.quote(platform)))
         else:
-            data = yield from self.get("https://public-ubiservices.ubi.com/v2/users/%s/profiles?platformType=%s" % (uid, parse.quote(platform)))
+            data = yield from self.get("https://public-ubiservices.ubi.com/v3/users/%s/profiles?platformType=%s" % (uid, parse.quote(platform)))
 
         if "profiles" in data:
             results = [Player(self, x) for x in data["profiles"] if x.get("platformType", "") == platform]
