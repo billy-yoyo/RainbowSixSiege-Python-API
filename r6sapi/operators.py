@@ -186,8 +186,10 @@ OperatorStatisticNames = {
     "ORYX": "kills after dash",
     "ACE": "S.E.L.M.A. Detonations",
     "MELUSI": "Attackers slowed by Banshee",
-    "ZERO": "Gadgets Destroyed by ARGUS Camera"
+    "ZERO": "Gadgets Destroyed by ARGUS Camera",
+    "ARUNI": "none"
 }
+
 
 class Operator:
     """Contains information about an operator

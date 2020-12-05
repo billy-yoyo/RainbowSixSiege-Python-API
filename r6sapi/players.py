@@ -9,7 +9,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 """
 
 import asyncio
-import inspect
+
+from .definitions.converters import OperatorInfo
+from .definitions.info import operators
+
 from .exceptions import InvalidRequest
 from .platforms import PlatformURLNames
 from .weapons import *
@@ -218,7 +221,7 @@ class Player:
             data = yield from self.auth.get(self.url_builder.fetch_statistic_url(statistics))
             self._last_data = data
 
-        if not "results" in data or not self.id in data["results"]:
+        if "results" not in data or self.id not in data["results"]:
             raise InvalidRequest("Missing results key in returned JSON object %s" % str(data))
 
         data = data["results"][self.id]
@@ -376,30 +379,37 @@ class Player:
         -------
         :class:`Operator`
             the operator object found"""
-        location = yield from self.auth.get_operator_index(operator)
-        if location is None:
+
+        # check if operator occurs in the definitions
+        op = operators.from_name(operator)
+        if op is None:
             raise ValueError("invalid operator %s" % operator)
 
-        operator_key = yield from self.auth.get_operator_statistic(operator)
-        if operator_key is not None:
-            operator_key = "," + operator_key
-        else:
-            operator_key = ""
+        location = op.index
+
+        statistics = []
+        for stat_name in OperatorUrlStatisticNames:
+            # the statistic key is the stat name e.g. `operatorpvp_kills` + an "operator index" to filter the result + ":infinite"
+            # the resulting key will look something like `operatorpvp_kills:1:2:infinite`
+            # where :1:2: varies
+            statistics.append("{stat_name}:{index}:infinite".format(stat_name=stat_name, index=op.index))
+
 
         if data is None:
-            statistics = ",".join(OperatorUrlStatisticNames) + operator_key
+            # join the statistic name strings to build the url
+            statistics = ",".join(statistics)
             data = yield from self.auth.get(self.url_builder.load_operator_url(statistics))
             self._last_data = data
 
-        if not "results" in data or not self.id in data["results"]:
+        if "results" not in data or self.id not in data["results"]:
             raise InvalidRequest("Missing results key in returned JSON object %s" % str(data))
 
         data = data["results"][self.id]
 
         data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None and location in x}
 
-        if operator_key:
-            data["__statistic_name"] = operator_key.split("_")[1]
+        # if operator_key:
+        #    data["__statistic_name"] = operator_key.split("_")[1]
 
         #if len(data) < 5:
         #    raise InvalidRequest("invalid number of results for operator in JSON object %s" % data)

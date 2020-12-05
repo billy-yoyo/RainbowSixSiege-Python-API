@@ -56,3 +56,5 @@ dist
 testing
 
 docs/_build/
+
+.env
