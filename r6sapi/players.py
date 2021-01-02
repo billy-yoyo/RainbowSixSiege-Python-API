@@ -10,8 +10,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import asyncio
 
-from .definitions.converters import OperatorInfo
-from .definitions.info import operators
+from .definitions.models import OperatorInfo
+from .definitions import operators, seasons
 
 from .exceptions import InvalidRequest
 from .platforms import PlatformURLNames
@@ -277,7 +277,8 @@ class Player:
             data = yield from self.auth.get(self.url_builder.load_rank_url(region, season))
             self._last_data = data
 
-        rank_definitions = yield from self.auth.get_rank_definitions()
+        queried_season = seasons[season]
+        rank_definitions = queried_season.season_ranks
 
         if "players" in data and self.id in data["players"]:
             regionkey = "%s:%s" % (region, season)
@@ -320,26 +321,37 @@ class Player:
         -------
         dict[:class:`Operator`]
             the dictionary of all operators found"""
-        statistics = ",".join(OperatorUrlStatisticNames)
+        statistics = []
 
-        for operator in OperatorStatisticNames:
-            operator_key = yield from self.auth.get_operator_statistic(operator)
-            if operator_key:
-                statistics += "," + operator_key
+        """"
+        # for stat_name in OperatorStatisticNames:
+        for op in operators.get_all():
+            for stat_name in OperatorUrlStatisticNames:
+                # the statistic key is the stat name e.g. `operatorpvp_kills` + an "operator index" to filter the result + ":infinite"
+                # the resulting key will look something like `operatorpvp_kills:1:2:infinite`
+                # where :1:2: varies depending on the operator
+                statistics.append("{stat_name}:{index}:infinite".format(stat_name=stat_name, index=op.index))
+        """
+
+        statistics = ",".join(list(OperatorUrlStatisticNames))#  + [i.index for i in operators.get_all()])
+
+
 
         if data is None:
             data = yield from self.auth.get(self.url_builder.load_operator_url(statistics))
             self._last_data = data
 
-        if "results" not in data or not self.id in data["results"]:
+        if "results" not in data or self.id not in data["results"]:
             raise InvalidRequest("Missing results key in returned JSON object %s" % str(data))
 
         data = data["results"][self.id]
 
+        # replace this with iterating through operators -> building an
+        # operator based off the raw stat info
         for operator in OperatorStatisticNames:
-            location = yield from self.auth.get_operator_index(operator.lower())
-            op_data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None and location in x}
-            operator_key = yield from self.auth.get_operator_statistic(operator)
+            # location = yield from self.auth.get_operator_index(operator.lower())
+            op_data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None}
+            operator_key = None # yield from self.auth.get_operator_statistic(operator)
             if operator_key:
                 op_data["__statistic_name"] = operator_key.split("_")[1]
 
@@ -385,7 +397,6 @@ class Player:
         if op is None:
             raise ValueError("invalid operator %s" % operator)
 
-        location = op.index
 
         statistics = []
         for stat_name in OperatorUrlStatisticNames:
@@ -405,14 +416,14 @@ class Player:
             raise InvalidRequest("Missing results key in returned JSON object %s" % str(data))
 
         data = data["results"][self.id]
-
-        data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None and location in x}
+        # the data will be in the format
+        # operatorpvp_kills:1:1:infinite
+        # first remove everything after and including the first :
+        # then remove everything before the main objective `kills`
+        data = {x.split(":")[0].split("_")[1]: data[x] for x in data if x is not None}
 
         # if operator_key:
         #    data["__statistic_name"] = operator_key.split("_")[1]
-
-        #if len(data) < 5:
-        #    raise InvalidRequest("invalid number of results for operator in JSON object %s" % data)
 
         oper = Operator(operator, data)
         self.operators[operator] = oper
