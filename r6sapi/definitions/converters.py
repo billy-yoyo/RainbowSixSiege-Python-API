@@ -8,7 +8,7 @@ import logging
 
 import dateutil.parser
 
-from r6sapi.definitions.models import Loadout, OperatorInfo, OperatorSide, Season, RankInfo
+from r6sapi.definitions.models import Loadout, OperatorInfo, OperatorSide, Season, RankInfo, UniqueOperatorStat
 
 
 class Loadouts:
@@ -74,12 +74,12 @@ class Operators:
         all_operators: list[dict]
             a list of loadout dictionary objects
         loadouts_store: :class:`Loadouts`
-            a Loadouts object containing all the operator's loadouts
+            a Loadouts object containing all the operators' loadouts
         """
         self._name_to_operator = {}
         self._id_to_operator = {}
         for operator_dict in all_operators:
-            # seperate out the parts of the dictionary that can be just passed through to the constructor
+            # separate out the parts of the dictionary that can be just passed through to the constructor
             finished_fields = {
                 key: value for key, value in operator_dict.items()
                 if key in ("id", "name", "icon_url", "index", "roles")
@@ -95,7 +95,13 @@ class Operators:
                 else:
                     logging.warning("Skipped a loadout from operator %s with id %s", operator_dict["name"], operator_dict["id"])
 
-            op = OperatorInfo(**finished_fields, side=side, loadouts=loadouts)
+            # load in the unique abilities
+            op_stats = []
+            for ability in operator_dict["unique_stats"]:
+                stat = UniqueOperatorStat(ability["id"], ability["name"])
+                op_stats.append(stat)
+
+            op = OperatorInfo(**finished_fields, side=side, loadouts=loadouts, unique_abilities=op_stats)
             self._id_to_operator[op.id] = op
             self._name_to_operator[op.name.lower()] = op
 

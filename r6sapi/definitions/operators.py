@@ -1,5 +1,31 @@
 operators_const = [
     {
+        "id": "7feJxtxHhV3TB8dHECwJu",
+        "name": "aruni",
+        "icon_url": "https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/5rOLCYQOh5HH0Nv6NHe38H/9b0328e497113d55ecb88cc2b090cbcd/r6s-operators-badge-aruni.png",
+        "loadouts": [
+            "1LVSwzrXIEAd1O3vntSQMs",
+            "6xDz1HSwIn3ZcV9nKIeKUN",
+            "5mI0sCcUxKW3Imv5ZMBBeL",
+            "7pAPyONkaR3xGR47gvXwSz",
+            "3WoO6qQpm6SkD2ceFlpIVq",
+            "7eb4vAG3ycZGuIRAoRl58a"
+        ],
+        "side": "defender",
+        "roles": [
+            "secure",
+            "intel-gatherer",
+            "anchor"
+        ],
+        "index": "5:17",
+        "unique_stats": [
+            {
+                "id": "operator{}_aruni",
+                "name": "Surya Gates Deployed"
+            }
+        ]
+    },
+    {
         "id": "3vcCTPWwwnrW8zbKeZJpm3",
         "name": "tachanka",
         "icon_url": "https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/7hpI2mcmvyjC2vG6ieltLo/4487e150046e98afd69a84bfe3bcf995/R6-operators-badge-tachanka.png",
@@ -18,27 +44,17 @@ operators_const = [
             "covering-fire",
             "shield"
         ],
-        "index": "5:4"
-    },
-    {
-        "id": "7feJxtxHhV3TB8dHECwJu",
-        "name": "aruni",
-        "icon_url": "https://staticctf.akamaized.net/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/5rOLCYQOh5HH0Nv6NHe38H/9b0328e497113d55ecb88cc2b090cbcd/r6s-operators-badge-aruni.png",
-        "loadouts": [
-            "1LVSwzrXIEAd1O3vntSQMs",
-            "6xDz1HSwIn3ZcV9nKIeKUN",
-            "5mI0sCcUxKW3Imv5ZMBBeL",
-            "5QtTa00eoscVRzAfGy44y6",
-            "3WoO6qQpm6SkD2ceFlpIVq",
-            "7eb4vAG3ycZGuIRAoRl58a"
-        ],
-        "side": "defender",
-        "roles": [
-            "secure",
-            "intel-gatherer",
-            "anchor"
-        ],
-        "index": "5:17"
+        "index": "5:4",
+        "unique_stats": [
+            {
+                "id": "operator{}_tachanka_turretkill",
+                "name": "Mounted LMG Kills"
+            },
+            {
+                "id": "operator{}_tachanka_turretdeployed",
+                "name": "Mounted LMG Deployed"
+            }
+        ]
     },
     {
         "id": "5L5ghOjR8KVPsoU2gGkL7k",
@@ -58,7 +74,13 @@ operators_const = [
             "crowd-control",
             "trap"
         ],
-        "index": "3:6"
+        "index": "3:6",
+        "unique_stats": [
+            {
+                "id": "operator{}_frost_dbno",
+                "name": "Enemies Caught in Welcome Mats"
+            }
+        ]
     },
     {
         "id": "2NxRSbPrRn4iodr7IQMCvp",
@@ -78,7 +100,13 @@ operators_const = [
             "roam",
             "soft-breach"
         ],
-        "index": "2:18"
+        "index": "2:18",
+        "unique_stats": [
+            {
+                "id": "operator{}_oryx_killsafterdash",
+                "name": "Kills after Remah Dashes"
+            }
+        ]
     },
     {
         "id": "3UaFBQkLJUBXhwjou4bYIc",
@@ -98,7 +126,13 @@ operators_const = [
             "intel-gatherer",
             "secure"
         ],
-        "index": "2:1A"
+        "index": "2:1A",
+        "unique_stats": [
+            {
+                "id": "operator{}_melusi_sloweddown",
+                "name": "Attackers slowed by Banshee"
+            }
+        ]
     },
     {
         "id": "53gtHRLApgtoojrS4RrEoE",
@@ -117,7 +151,13 @@ operators_const = [
             "flank",
             "soft-breach"
         ],
-        "index": "2:6"
+        "index": "2:6",
+        "unique_stats": [
+            {
+                "id": "operator{}_buck_kill",
+                "name": "Kills with the Skeleton Key"
+            }
+        ]
     },
     {
         "id": "7gHiD3KLWOBXCf9ryOMLSN",
@@ -139,7 +179,13 @@ operators_const = [
             "flank",
             "soft-breach"
         ],
-        "index": "3:C"
+        "index": "3:C",
+        "unique_stats": [
+            {
+                "id": "operator{}_concussiongrenade_detonate",
+                "name": "Concussion Grenades Detonated"
+            }
+        ]
     },
     {
         "id": "4gKF11DuIPfzvHIN8GsMPk",
@@ -161,7 +207,13 @@ operators_const = [
             "intel-gatherer",
             "secure"
         ],
-        "index": "3:9"
+        "index": "3:9",
+        "unique_stats": [
+            {
+                "id": "operator{}_echo_enemy_sonicburst_affected",
+                "name": "Enemies Disoriented by Yokai"
+            }
+        ]
     },
     {
         "id": "6PszmIIE4cSjvXHxr97AYn",
@@ -183,7 +235,13 @@ operators_const = [
             "intel-denier",
             "intel-gatherer"
         ],
-        "index": "2:D"
+        "index": "2:D",
+        "unique_stats": [
+            {
+                "id": "operator{}_phoneshacked",
+                "name": "Phones Hacked"
+            }
+        ]
     },
     {
         "id": "6quzxNn6sc1qMHIWqpO0Bj",
@@ -203,7 +261,13 @@ operators_const = [
             "intel-gatherer",
             "roam"
         ],
-        "index": "3:8"
+        "index": "3:8",
+        "unique_stats": [
+            {
+                "id": "operator{}_caveira_interrogations",
+                "name": "Successful Interrogations Performed"
+            }
+        ]
     },
     {
         "id": "6E7mOox12Sdomem7JmNjiF",
@@ -223,7 +287,13 @@ operators_const = [
             "anchor",
             "secure"
         ],
-        "index": "3:17"
+        "index": "3:17",
+        "unique_stats": [
+            {
+                "id": "operator{}_wamai_gadgetdestroybymagnet",
+                "name": "Projectiles Captured"
+            }
+        ]
     },
     {
         "id": "5dWq52BOrSdWPZaD4rJZ2m",
@@ -242,7 +312,13 @@ operators_const = [
             "crowd-control",
             "front-line"
         ],
-        "index": "2:B"
+        "index": "2:B",
+        "unique_stats": [
+            {
+                "id": "operator{}_dazzler_gadget_detonate",
+                "name": "Candela Devices Detonated"
+            }
+        ]
     },
     {
         "id": "5NIWksKzzKDYtPAGoC4k4W",
@@ -263,7 +339,13 @@ operators_const = [
             "crowd-control",
             "trap"
         ],
-        "index": "2:11"
+        "index": "2:11",
+        "unique_stats": [
+            {
+                "id": "operator{}_nomad_airjabdetonate",
+                "name": "Airjabs Detonated"
+            }
+        ]
     },
     {
         "id": "3NMVnvoVQtOvA6IRporOhx",
@@ -284,7 +366,21 @@ operators_const = [
             "anchor",
             "buff"
         ],
-        "index": "3:3"
+        "index": "3:3",
+        "unique_stats": [
+            {
+                "id": "operator{}_rook_armortakenteammate",
+                "name": "Armor Plate Taken by Teammates"
+            },
+            {
+                "id": "operator{}_rook_armortakenourself",
+                "name": "Armors Taken for Self"
+            },
+            {
+                "id": "operator{}_rook_armorboxdeployed",
+                "name": "Armor Crates Deployed"
+            }
+        ]
     },
     {
         "id": "4GknsfzxkbdoHAbAPIKJku",
@@ -304,7 +400,13 @@ operators_const = [
             "flank",
             "intel-denier"
         ],
-        "index": "2:13"
+        "index": "2:13",
+        "unique_stats": [
+            {
+                "id": "operator{}_nokk_observationtooldeceived",
+                "name": "Observation Tools Deceived"
+            }
+        ]
     },
     {
         "id": "4vAXEvm0AeaPKhjNQz7j4G",
@@ -324,7 +426,13 @@ operators_const = [
             "intel-gatherer",
             "secure"
         ],
-        "index": "2:12"
+        "index": "2:12",
+        "unique_stats": [
+            {
+                "id": "operator{}_mozzie_droneshacked",
+                "name": "Drones Hacked"
+            }
+        ]
     },
     {
         "id": "12bsOqEHwoavwivBcCX9cn",
@@ -342,7 +450,13 @@ operators_const = [
         "roles": [
             "shield"
         ],
-        "index": "5:3"
+        "index": "5:3",
+        "unique_stats": [
+            {
+                "id": "operator{}_montagne_shieldblockdamage",
+                "name": "Bullets Blocked by Extended Shield"
+            }
+        ]
     },
     {
         "id": "5HqMQeknafJWZVMFgwRSJa",
@@ -363,7 +477,13 @@ operators_const = [
             "intel-gatherer",
             "secure"
         ],
-        "index": "3:A"
+        "index": "3:A",
+        "unique_stats": [
+            {
+                "id": "operator{}_black_mirror_gadget_deployed",
+                "name": "Black Mirror Deployed"
+            }
+        ]
     },
     {
         "id": "7u7D3rZ9dST2Dltv12heyc",
@@ -384,7 +504,13 @@ operators_const = [
             "flank",
             "hard-breach"
         ],
-        "index": "2:10"
+        "index": "2:10",
+        "unique_stats": [
+            {
+                "id": "operator{}_maverick_wallbreached",
+                "name": "Walls Breached With Torch"
+            }
+        ]
     },
     {
         "id": "3bkxPv3BP8x7HxabDowe8j",
@@ -407,7 +533,13 @@ operators_const = [
             "crowd-control",
             "intel-gatherer"
         ],
-        "index": "3:E"
+        "index": "3:E",
+        "unique_stats": [
+            {
+                "id": "operator{}_tagger_tagdevice_spot",
+                "name": "Enemies Detected by EE-ONE-D"
+            }
+        ]
     },
     {
         "id": "1zLvd3YqSJiVi7bREVQROw",
@@ -426,7 +558,13 @@ operators_const = [
             "intel-denier",
             "intel-gatherer"
         ],
-        "index": "2:19"
+        "index": "2:19",
+        "unique_stats": [
+            {
+                "id": "operator{}_iana_killsafterreplicator",
+                "name": "Kills after using Replicators"
+            }
+        ]
     },
     {
         "id": "2lJcNEGLHQnmFQB49DBETw",
@@ -446,7 +584,13 @@ operators_const = [
             "covering-fire",
             "disable"
         ],
-        "index": "2:17"
+        "index": "2:17",
+        "unique_stats": [
+            {
+                "id": "operator{}_kali_gadgetdestroywithexplosivelance",
+                "name": "Gadgets Destroyed with the LV"
+            }
+        ]
     },
     {
         "id": "31SkgzYKiYzbFKSpTpqra2",
@@ -467,7 +611,13 @@ operators_const = [
             "anti-hard-breach",
             "secure"
         ],
-        "index": "3:11"
+        "index": "3:11",
+        "unique_stats": [
+            {
+                "id": "operator{}_kaid_electroclawelectrify",
+                "name": "Electroclaws Successfully Deployed"
+            }
+        ]
     },
     {
         "id": "lrDnPHSsfQK6lBlaPyStn",
@@ -486,7 +636,13 @@ operators_const = [
             "roam",
             "secure"
         ],
-        "index": "4:5"
+        "index": "4:5",
+        "unique_stats": [
+            {
+                "id": "operator{}_jager_gadgetdestroybycatcher",
+                "name": "Gadget Destroyed by ADS"
+            }
+        ]
     },
     {
         "id": "2rVZYXHzcD1mKRv9V0u08C",
@@ -507,7 +663,13 @@ operators_const = [
             "area-denial",
             "crowd-control"
         ],
-        "index": "3:12"
+        "index": "3:12",
+        "unique_stats": [
+            {
+                "id": "operator{}_gridlock_traxdeployed",
+                "name": "Trax Deployed"
+            }
+        ]
     },
     {
         "id": "RNoGzESS8km5yvlyVKoFK",
@@ -527,7 +689,17 @@ operators_const = [
             "covering-fire",
             "soft-breach"
         ],
-        "index": "2:4"
+        "index": "2:4",
+        "unique_stats": [
+            {
+                "id": "operator{}_glaz_sniperkill",
+                "name": "Sniper Kills"
+            },
+            {
+                "id": "operator{}_glaz_sniperpenetrationkill",
+                "name": "Penetration Sniper Kills"
+            }
+        ]
     },
     {
         "id": "3yix1phgKMCjUTWxlSvRWM",
@@ -546,7 +718,13 @@ operators_const = [
             "area-denial",
             "secure"
         ],
-        "index": "2:15"
+        "index": "2:15",
+        "unique_stats": [
+            {
+                "id": "operator{}_goyo_volcandetonate",
+                "name": "Volc\u00e1n Detonated by Your Team"
+            }
+        ]
     },
     {
         "id": "qNq8DzEWiF5AF5No0PnAe",
@@ -568,7 +746,13 @@ operators_const = [
             "disable",
             "flank"
         ],
-        "index": "3:4"
+        "index": "3:4",
+        "unique_stats": [
+            {
+                "id": "operator{}_fuze_clusterchargekill",
+                "name": "Cluster Charge Kills"
+            }
+        ]
     },
     {
         "id": "NcnPddLmhsez73xhI6lZf",
@@ -589,7 +773,13 @@ operators_const = [
             "back-line",
             "buff"
         ],
-        "index": "4:E"
+        "index": "4:E",
+        "unique_stats": [
+            {
+                "id": "operator{}_rush_adrenalinerush",
+                "name": "Adrenal Surge Bonus"
+            }
+        ]
     },
     {
         "id": "4sRPnllVTVhBUHIYQZslAN",
@@ -609,7 +799,13 @@ operators_const = [
             "anchor",
             "secure"
         ],
-        "index": "2:2"
+        "index": "2:2",
+        "unique_stats": [
+            {
+                "id": "operator{}_castle_kevlarbarricadedeployed",
+                "name": "Armor Panels Deployed"
+            }
+        ]
     },
     {
         "id": "1FfpMgTvv17kWL1Zf8iBJR",
@@ -629,7 +825,13 @@ operators_const = [
             "flank",
             "front-line"
         ],
-        "index": "2:8"
+        "index": "2:8",
+        "unique_stats": [
+            {
+                "id": "operator{}_capitao_lethaldartkills",
+                "name": "Kills with Asphyxiating Bolts"
+            }
+        ]
     },
     {
         "id": "6FeizKECxhrkskrcjb6IdF",
@@ -648,7 +850,13 @@ operators_const = [
             "front-line",
             "hard-breach"
         ],
-        "index": "4:17"
+        "index": "4:17",
+        "unique_stats": [
+            {
+                "id": "operator{}_ace_selmadetonate",
+                "name": "S.E.L.M.A. Detonations"
+            }
+        ]
     },
     {
         "id": "2aiyRlZ2lsVa199t278saz",
@@ -668,7 +876,13 @@ operators_const = [
             "flank",
             "front-line"
         ],
-        "index": "2:16"
+        "index": "2:16",
+        "unique_stats": [
+            {
+                "id": "operator{}_amaru_distancereeled",
+                "name": "Total Distance Reeled"
+            }
+        ]
     },
     {
         "id": "5RTKiJ8DJmnjL8WRHsxaIO",
@@ -687,7 +901,13 @@ operators_const = [
             "intel-denier",
             "intel-gatherer"
         ],
-        "index": "1:1B"
+        "index": "1:1B",
+        "unique_stats": [
+            {
+                "id": "operator{}_zero_gadgetsdestroyed",
+                "name": "Gadgets Destroyed by ARGUS Camera"
+            }
+        ]
     },
     {
         "id": "3cT19hh6rONnvLCcJJxjY2",
@@ -709,7 +929,17 @@ operators_const = [
             "front-line",
             "soft-breach"
         ],
-        "index": "3:2"
+        "index": "3:2",
+        "unique_stats": [
+            {
+                "id": "operator{}_ash_bonfirewallbreached",
+                "name": "Destruction by Breaching Round"
+            },
+            {
+                "id": "operator{}_ash_bonfirekill",
+                "name": "Kills with Breaching Round"
+            }
+        ]
     },
     {
         "id": "2ss3LiQm7UqjPppszr9ZiO",
@@ -732,7 +962,17 @@ operators_const = [
             "front-line",
             "intel-gatherer"
         ],
-        "index": "4:3"
+        "index": "4:3",
+        "unique_stats": [
+            {
+                "id": "operator{}_twitch_gadgetdestroybyshockdrone",
+                "name": "Gadgets Destroyed by Shock Drone"
+            },
+            {
+                "id": "operator{}_twitch_shockdronekill",
+                "name": "Kills with Shock Drone"
+            }
+        ]
     },
     {
         "id": "18EH4dqgGBHLUzdAzhnltQ",
@@ -753,7 +993,13 @@ operators_const = [
             "secure",
             "shield"
         ],
-        "index": "3:10"
+        "index": "3:10",
+        "unique_stats": [
+            {
+                "id": "operator{}_clash_sloweddown",
+                "name": "Enemies Killed While Slowed Down"
+            }
+        ]
     },
     {
         "id": "5E3KpexU4FECNxw5gHpeu3",
@@ -775,7 +1021,13 @@ operators_const = [
             "intel-gatherer",
             "secure"
         ],
-        "index": "2:F"
+        "index": "2:F",
+        "unique_stats": [
+            {
+                "id": "operator{}_barrage_killswithturret",
+                "name": "Enemies Killed by Evil Eye"
+            }
+        ]
     },
     {
         "id": "3dZZFraiAjCOccDYznh2hO",
@@ -797,7 +1049,13 @@ operators_const = [
             "roam",
             "trap"
         ],
-        "index": "3:B"
+        "index": "3:B",
+        "unique_stats": [
+            {
+                "id": "operator{}_caltrop_enemy_affected",
+                "name": "Enemies Poisoned by Gu Mine"
+            }
+        ]
     },
     {
         "id": "2t6cIQL6iW1w9eF9jYkjLR",
@@ -817,7 +1075,13 @@ operators_const = [
             "covering-fire",
             "shield"
         ],
-        "index": "2:7"
+        "index": "2:7",
+        "unique_stats": [
+            {
+                "id": "operator{}_blackbeard_gunshieldblockdamage",
+                "name": "Bullets Stopped by Shield"
+            }
+        ]
     },
     {
         "id": "1t2844sI8aOwLG5zXrNgQr",
@@ -838,7 +1102,13 @@ operators_const = [
             "front-line",
             "hard-breach"
         ],
-        "index": "2:9"
+        "index": "2:9",
+        "unique_stats": [
+            {
+                "id": "operator{}_hibana_detonate_projectile",
+                "name": "X-KAIROS Pellets Detonated"
+            }
+        ]
     },
     {
         "id": "15h9yOUZxMYr7IQsdKJDg2",
@@ -858,7 +1128,17 @@ operators_const = [
             "flank",
             "soft-breach"
         ],
-        "index": "4:1"
+        "index": "4:1",
+        "unique_stats": [
+            {
+                "id": "operator{}_sledge_hammerhole",
+                "name": "Destruction by Breaching Hammer"
+            },
+            {
+                "id": "operator{}_sledge_hammerkill",
+                "name": "Kills with Breaching Hammer"
+            }
+        ]
     },
     {
         "id": "6EMMdRTRqP1maSKqJol2F0",
@@ -877,7 +1157,17 @@ operators_const = [
         "roles": [
             "trap"
         ],
-        "index": "4:4"
+        "index": "4:4",
+        "unique_stats": [
+            {
+                "id": "operator{}_kapkan_boobytrapkill",
+                "name": "EDD Kills"
+            },
+            {
+                "id": "operator{}_kapkan_boobytrapdeployed",
+                "name": "EDD Deployed"
+            }
+        ]
     },
     {
         "id": "24k25swCzWGQ6l3Jo9y2kq",
@@ -898,7 +1188,13 @@ operators_const = [
             "anti-roam",
             "intel-gatherer"
         ],
-        "index": "2:A"
+        "index": "2:A",
+        "unique_stats": [
+            {
+                "id": "operator{}_cazador_assist_kill",
+                "name": "Eyenox Tracking Assist"
+            }
+        ]
     },
     {
         "id": "3Ne7k7TUoZO51IR7wR14K8",
@@ -920,7 +1216,13 @@ operators_const = [
             "front-line",
             "intel-gatherer"
         ],
-        "index": "3:5"
+        "index": "3:5",
+        "unique_stats": [
+            {
+                "id": "operator{}_iq_gadgetspotbyef",
+                "name": "Gadgets Spotted by Electronics Detector"
+            }
+        ]
     },
     {
         "id": "4DMii3OalKfuRzPSDDm6bP",
@@ -940,7 +1242,13 @@ operators_const = [
             "roam",
             "secure"
         ],
-        "index": "5:5"
+        "index": "5:5",
+        "unique_stats": [
+            {
+                "id": "operator{}_bandit_batterykill",
+                "name": "Shock Wire Kills"
+            }
+        ]
     },
     {
         "id": "1vMovJ9L8yAkY208tvbJkW",
@@ -961,7 +1269,13 @@ operators_const = [
             "area-denial",
             "secure"
         ],
-        "index": "2:1"
+        "index": "2:1",
+        "unique_stats": [
+            {
+                "id": "operator{}_smoke_poisongaskill",
+                "name": "Poison Gas Kills"
+            }
+        ]
     },
     {
         "id": "76RUCnUN3fnX0FPib5QovT",
@@ -982,7 +1296,21 @@ operators_const = [
             "anchor",
             "buff"
         ],
-        "index": "2:3"
+        "index": "2:3",
+        "unique_stats": [
+            {
+                "id": "operator{}_doc_teammaterevive",
+                "name": "Teammates Revived"
+            },
+            {
+                "id": "operator{}_doc_selfrevive",
+                "name": "Self Revives"
+            },
+            {
+                "id": "operator{}_doc_hostagerevive",
+                "name": "Hostages Revived"
+            }
+        ]
     },
     {
         "id": "7iQZnZu1gutAtm6NDbBJkK",
@@ -1002,7 +1330,13 @@ operators_const = [
             "anchor",
             "intel-denier"
         ],
-        "index": "2:14"
+        "index": "2:14",
+        "unique_stats": [
+            {
+                "id": "operator{}_warden_killswithglasses",
+                "name": "Kills While Using Glance"
+            }
+        ]
     },
     {
         "id": "3t9B1rl6xxdnOVqTMwkMmM",
@@ -1022,7 +1356,13 @@ operators_const = [
             "roam",
             "trap"
         ],
-        "index": "2:C"
+        "index": "2:C",
+        "unique_stats": [
+            {
+                "id": "operator{}_concussionmine_detonate",
+                "name": "Grzmot Mines Detonated"
+            }
+        ]
     },
     {
         "id": "6UHYCC0khgh7ULph74z2rw",
@@ -1042,7 +1382,21 @@ operators_const = [
             "back-line",
             "hard-breach"
         ],
-        "index": "5:2"
+        "index": "5:2",
+        "unique_stats": [
+            {
+                "id": "operator{}_thermite_reinforcementbreached",
+                "name": "Reinforcements Breached by Thermal Charge"
+            },
+            {
+                "id": "operator{}_thermite_chargekill",
+                "name": "Kills with Thermal Charge"
+            },
+            {
+                "id": "operator{}_thermite_chargedeployed",
+                "name": "Thermal Charges Deployed"
+            }
+        ]
     },
     {
         "id": "5cO6xvTlrmOOwLOVE7rKny",
@@ -1062,7 +1416,17 @@ operators_const = [
             "intel-gatherer",
             "roam"
         ],
-        "index": "4:2"
+        "index": "4:2",
+        "unique_stats": [
+            {
+                "id": "operator{}_pulse_heartbeatspot",
+                "name": "Heartbeats Spotted"
+            },
+            {
+                "id": "operator{}_pulse_heartbeatassist",
+                "name": "Heartbeat Scanner Assists"
+            }
+        ]
     },
     {
         "id": "3DVzjfdmBekNW0IFf84skr",
@@ -1081,7 +1445,13 @@ operators_const = [
             "intel-gatherer",
             "roam"
         ],
-        "index": "3:7"
+        "index": "3:7",
+        "unique_stats": [
+            {
+                "id": "operator{}_valkyrie_camdeployed",
+                "name": "Black Eye Cameras Deployed"
+            }
+        ]
     },
     {
         "id": "7jxNRuGAGt7IGaLXK3jB1T",
@@ -1102,7 +1472,17 @@ operators_const = [
             "intel-denier",
             "secure"
         ],
-        "index": "3:1"
+        "index": "3:1",
+        "unique_stats": [
+            {
+                "id": "operator{}_mute_gadgetjammed",
+                "name": "Gadgets Jammed"
+            },
+            {
+                "id": "operator{}_mute_jammerdeployed",
+                "name": "Jammers Deployed"
+            }
+        ]
     },
     {
         "id": "xRGPl5S26pEJnoq1nC5Fl",
@@ -1122,7 +1502,13 @@ operators_const = [
             "back-line",
             "disable"
         ],
-        "index": "5:1"
+        "index": "5:1",
+        "unique_stats": [
+            {
+                "id": "operator{}_thatcher_gadgetdestroywithemp",
+                "name": "Gadgets Destroyed by EMP"
+            }
+        ]
     },
     {
         "id": "7BA7dPvstLnPqoVVvKBaAa",
@@ -1142,7 +1528,21 @@ operators_const = [
             "front-line",
             "shield"
         ],
-        "index": "2:5"
+        "index": "2:5",
+        "unique_stats": [
+            {
+                "id": "operator{}_blitz_flashedenemy",
+                "name": "Enemies Blinded by Flash Shield"
+            },
+            {
+                "id": "operator{}_blitz_flashfollowupkills",
+                "name": "Post-flash follow up kills"
+            },
+            {
+                "id": "operator{}_blitz_flashshieldassist",
+                "name": "Post-flash assisted kills"
+            }
+        ]
     },
     {
         "id": "5bsH2HpfYXPTIS4V6wnnKf",
@@ -1162,7 +1562,13 @@ operators_const = [
             "intel-denier",
             "roam"
         ],
-        "index": "3:D"
+        "index": "3:D",
+        "unique_stats": [
+            {
+                "id": "operator{}_attackerdrone_diminishedrealitymode",
+                "name": "Drones Deceived"
+            }
+        ]
     },
     {
         "id": "44vemmg1yOUhLqA6FB6Qgq",
@@ -1184,6 +1590,12 @@ operators_const = [
             "roam",
             "trap"
         ],
-        "index": "3:F"
+        "index": "3:F",
+        "unique_stats": [
+            {
+                "id": "operator{}_deceiver_revealedattackers",
+                "name": "Enemies Tricked by Prisma"
+            }
+        ]
     }
 ]

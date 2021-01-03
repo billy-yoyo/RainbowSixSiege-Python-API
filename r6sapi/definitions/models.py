@@ -74,7 +74,7 @@ class OperatorInfo:
         the language independent name of this operator. Generally lowercase english
     icon_url : str
         the url at which the operator's badge or icon can be found
-    loadouts : list[Loadout]
+    loadouts : list[:class:`Loadout`]
         a list of loadouts that this operator has access to
     side : OperatorSide
         which side the operator is one (ATK or DEF)
@@ -85,8 +85,10 @@ class OperatorInfo:
     index : str
         the `index` of this operator as defined by the v1 ubisoft api. this value is needed to query for operator
         stats
+    unique_abilities : Iterable[:class:`UniqueOperatorStat`]
+        the unique abilities that only this operator has.
     """
-    def __init__(self, id, name, icon_url, loadouts, side, roles, index, gadget_template=()):
+    def __init__(self, id, name, icon_url, loadouts, side, roles, index, unique_abilities):
         """
         Creates a new OperatorInfo object.
         Parameters
@@ -101,11 +103,7 @@ class OperatorInfo:
         self.side = side
         self.roles = roles
         self.index = index
-
-        if isinstance(gadget_template, str):
-            gadget_template = (gadget_template, )
-
-        self._gadget_templates = tuple(gadget_template)
+        self.unique_abilities = tuple(unique_abilities)
 
     def __eq__(self, other):
         return self.id == other.id and self.name == other.name and self.icon_url == other.icon_url and self.loadouts == r6sapi.definitions.loadouts and self.index == other.index
@@ -150,3 +148,33 @@ class Season:
         self.season_ranks = season_ranks
         self.operation_name = operation_name
 
+
+class UniqueOperatorStat:
+    """
+    Unique Statistic for an operator (e.g. how many kills with cap's fire bolt)
+    We query the API using a certain magic string, which varies depending on
+    Attributes
+    ----------
+    id_template: str
+        template which can be used to construct the full stat name to use
+        In the form of `operator{}_smoke_poisongaskill`
+    name: str
+        the name of the stat e.g. `Gadgets Jammed`
+    """
+    def __init__(self, id_template, name):
+        self.id_template = id_template
+        self.name = name
+
+    @property
+    def pvp_stat_name(self):
+        return self.id_template.format("pvp")
+
+    @property
+    def pve_stat_name(self):
+        return self.id_template.format("pve")
+
+    def __repr__(self):
+        return "UniqueOperatorStat(name={}, id_template={})".format(self.name, self.id_template)
+
+    def __str__(self):
+        return repr(self)
