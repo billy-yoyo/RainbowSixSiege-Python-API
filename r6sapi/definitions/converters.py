@@ -2,11 +2,12 @@
 These collection classes convert the "raw" definitions of models found in {ranks, seasons, maps}.py
 and make it available as a collection of `model` objects
 """
-import collections
 from typing import Optional
-import logging
 
-import dateutil.parser
+import collections
+import datetime
+
+import logging
 
 from r6sapi.definitions.models import Loadout, OperatorInfo, OperatorSide, Season, RankInfo, UniqueOperatorStat
 
@@ -167,7 +168,7 @@ class Seasons:
             for rank_dict in season_dict["season_ranks"]:
                 season_ranks.append(RankInfo(**rank_dict))
 
-            start_date = dateutil.parser.parse(season_dict["startDate"])
+            start_date = datetime.datetime.strptime(season_dict["startDate"], "%Y-%m-%dT%H:%M:%S.%fZ")
 
             season = Season(**finished_fields, start_date=start_date, season_ranks=season_ranks)
 
