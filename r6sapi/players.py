@@ -7,7 +7,6 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-
 from collections import OrderedDict
 
 import asyncio
@@ -359,15 +358,6 @@ class Player:
         -------
         dict[:class:`Operator`]
             the dictionary of all operators found"""
-        """"
-        # for stat_name in OperatorStatisticNames:
-        for op in operators.get_all():
-            for stat_name in OperatorUrlStatisticNames:
-                # the statistic key is the stat name e.g. `operatorpvp_kills` + an "operator index" to filter the result + ":infinite"
-                # the resulting key will look something like `operatorpvp_kills:1:2:infinite`
-                # where :1:2: varies depending on the operator
-                statistics.append("{stat_name}:{index}:infinite".format(stat_name=stat_name, index=op.index))
-        """
         # ask the api for all the basic stat names WITHOUT a postfix to ask for all (I assume)
         statistics = list(OperatorUrlStatisticNames)
 
