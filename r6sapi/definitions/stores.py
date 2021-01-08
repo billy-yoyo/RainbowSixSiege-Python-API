@@ -7,8 +7,11 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-These collection classes convert the "raw" definitions of models found in {ranks, seasons, maps}.py
-and make it available as a collection of `model` objects
+These collection classes store a collection of the definition objects that are needed. They convert from the "raw" '
+definitions of models found in {ranks, seasons, maps}.py and make it available as a collection of `model` objects in
+the class's constructor.
+
+If we use an alternative data store in the future it may be worth refactoring out this logic.
 """
 from typing import Optional
 
