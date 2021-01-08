@@ -166,7 +166,7 @@ class RankInfoCollection(collections.UserList):
 
 class Seasons:
     """
-
+    Stores all seasons we know of, providing operations to fetch them based on code and id
     """
     def __init__(self, all_seasons):
         self._seasons = []
