@@ -7,7 +7,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-
+from r6sapi.definitions.models import RankInfo
+from r6sapi.definitions.stores import Seasons
 
 class RankedRegions:
     """Ranked regions supported
@@ -219,6 +220,13 @@ class Rank:
     CHAMPION = 6
 
     def __init__(self, data, rank_definitions):
+        """
+
+        Parameters
+        ----------
+        data
+        rank_definitions: :class:`RankInfoCollection`
+        """
         self._rank_definitions = rank_definitions
         self._new_ranks_threshold = 14
 
@@ -226,8 +234,10 @@ class Rank:
         self.mmr = data.get("mmr")
         self.wins = data.get("wins")
         self.losses = data.get("losses")
+
         self.rank_id = data.get("rank", 0)
-        self.rank = Rank.RANKS[self.rank_id]
+        self.rank = rank_definitions.get_rank(self.rank_id)
+
         self.max_rank = data.get("max_rank")
         self.next_rank_mmr = data.get("next_rank_mmr")
         self.season = data.get("season")
@@ -238,9 +248,9 @@ class Rank:
 
     @property
     def _season_definitions(self):
-        if self.season >= len(self._rank_definitions["seasons"]):
-            return self._rank_definitions["seasons"][-1]
-        return self._rank_definitions["seasons"][self.season]
+        if self.season >= len(self._rank_definitions):
+            return self._rank_definitions.last_season
+        return self._rank_definitions[self.season]
 
     def get_icon_url(self):
         """Get URL for this rank's icon

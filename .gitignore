@@ -56,3 +56,7 @@ dist
 testing
 
 docs/_build/
+
+# for virtual environments
+.env
+venv

@@ -88,7 +88,7 @@ OperatorIcons = {
 }
 
 
-#  DEPRECATED - use Auth.get_operator_statistic() instead
+#  DEPRECATED - use OperatorInfo.unique_abilities[0]
 OperatorStatistics = {
     "DOC": "teammaterevive",
     "TWITCH": "gadgetdestroybyshockdrone",
@@ -129,6 +129,7 @@ OperatorStatistics = {
 }
 
 
+# DEPRECATED - use OperatorInfo.statistic_name
 OperatorStatisticNames = {
     "DOC": "Teammates Revived",
     "TWITCH": "Gadgets Destroyed With Shock Drone",
@@ -186,8 +187,10 @@ OperatorStatisticNames = {
     "ORYX": "kills after dash",
     "ACE": "S.E.L.M.A. Detonations",
     "MELUSI": "Attackers slowed by Banshee",
-    "ZERO": "Gadgets Destroyed by ARGUS Camera"
+    "ZERO": "Gadgets Destroyed by ARGUS Camera",
+    "ARUNI": "none"
 }
+
 
 class Operator:
     """Contains information about an operator
@@ -215,10 +218,13 @@ class Operator:
     time_played : int
         the amount of time the player has played this operator for in seconds
     statistic : int
-        the value for this operators unique statistic
+        the value for this operators unique statistic (depreciated in favour of unique_stats)
     statistic_name : str
-        the human-friendly name for this operators statistic"""
-    def __init__(self, name, stats=None):
+        the human-friendly name for this operators statistic (depreciated in favour of unique_stats)
+    unique_stats : dict[:class:`UniqueOperatorStat`, int]
+        mapping of an operator's unique stat to number of times that stat has been achieved (e.g. kills with a gadget)
+    """
+    def __init__(self, name, stats=None, unique_stats=None):
         self.name = name.lower()
 
         stats = stats or {}
@@ -232,9 +238,30 @@ class Operator:
         self.xp = stats.get("totalxp", 0)
         self.time_played = stats.get("timeplayed", 0)
 
-        if "__statistic_name" in stats:
-            self.statistic = stats.get(stats.get("__statistic_name"), 0)
+        if unique_stats is not None:
+            self.unique_stats = unique_stats
         else:
-            self.statistic = 0
+            self.unique_stats = {}
 
-        self.statistic_name = OperatorStatisticNames[self.name.upper()]
+    @property
+    def statistic(self):
+        # get the first unique statistic `stat`, e.g. the number of kills using a gadget
+        stat = _first_key(self.unique_stats)
+        if stat is None:
+            return 0
+        else:
+            return self.unique_stats[stat]
+
+    @property
+    def statistic_name(self):
+        # get the first unique statistic `stat`, e.g. the number of kills using a gadget
+        stat = _first_key(self.unique_stats)
+        if stat is not None:
+            return stat.name
+        else:
+            return None
+
+
+def _first_key(d):
+    """Gets the first inserted key of a dictionary. Returns None if empty"""
+    return next(iter(d), None)
