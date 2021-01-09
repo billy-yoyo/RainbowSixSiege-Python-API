@@ -163,10 +163,18 @@ class RankInfoCollection(collections.UserList):
             # taken from bracket_from_rank
             return RankInfo.UNRANKED
 
+        # 0 is unranked, 1 is copper5 or 4 and so on
+        # however we dont store the unranked (for now), so we need offset it by one
+        # the following check ensures that the data is in the correct range
+        if rank_id < 0 or rank_id > len(self):
+            raise IndexError
+
+        return self[rank_id - 1]
+
 
 class Seasons:
     """
-
+    Stores all seasons we know of, providing operations to fetch them based on code and id
     """
     def __init__(self, all_seasons):
         self._seasons = []
@@ -219,6 +227,14 @@ class Seasons:
         return self._seasons[-1]
 
     def __getitem__(self, item):
-        return self._seasons[item]
+        if item == -1:
+            return self.last_season
+
+        # the seasons are numbered 1 to (len) from indexes 0 to (len - 1)
+        # therefore anything < 1 or > len is invalid
+        if item < 1 or item > len(self):
+            raise IndexError
+
+        return self._seasons[item - 1]
 
 
