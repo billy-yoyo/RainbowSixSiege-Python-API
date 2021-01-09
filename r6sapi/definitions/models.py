@@ -130,6 +130,12 @@ class RankInfo:
         self.min_mmr = min_mmr
         self.max_mmr = max_mmr
 
+    def __repr__(self):
+        return "RankInfo({}, {}, {})".format(self.name, self.min_mmr, self.max_mmr)
+
+    def __str__(self):
+        return repr(self)
+
 
 UNRANKED = RankInfo("unranked", -1, -1)
 RankInfo.UNRANKED = UNRANKED

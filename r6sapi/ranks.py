@@ -236,7 +236,8 @@ class Rank:
         self.losses = data.get("losses")
 
         self.rank_id = data.get("rank", 0)
-        self.rank = rank_definitions.get_rank(self.rank_id)
+        self.rank_obj = rank_definitions.get_rank(self.rank_id)
+        self.rank = self.rank_obj.name
 
         self.max_rank = data.get("max_rank")
         self.next_rank_mmr = data.get("next_rank_mmr")
